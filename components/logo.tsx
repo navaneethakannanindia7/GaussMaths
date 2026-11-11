@@ -1,13 +1,54 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
-export function Logo({ href = '/', light = false, tag }: { href?: string; light?: boolean; tag?: string }) {
+type LogoProps = {
+  href?: string
+  light?: boolean
+  tag?: string
+  size?: 'sm' | 'md' | 'lg'
+  showText?: boolean
+  className?: string
+}
+
+export function Logo({
+  href = '/',
+  light = false,
+  tag,
+  size = 'md',
+  showText = true,
+  className,
+}: LogoProps) {
+  const dim = {
+    sm: 32,
+    md: 40,
+    lg: 48,
+  }[size]
+
   return (
-    <Link href={href} className="inline-flex items-center gap-2.5" aria-label="Gauss Maths home">
-      <span className="grid size-9 place-items-center rounded-lg bg-lime text-lg font-black text-brand" aria-hidden="true">
-        {'Σ'}
-      </span>
-      <span className={cn('text-lg font-extrabold tracking-tight', light ? 'text-white' : 'text-brand')}>Gauss Maths</span>
+    <Link
+      href={href}
+      className={cn('inline-flex items-center gap-2.5 transition hover:opacity-95', className)}
+      aria-label="Gauss Maths home"
+    >
+      <div
+        className="relative shrink-0 overflow-hidden rounded-full shadow-sm ring-1 ring-black/10"
+        style={{ width: dim, height: dim }}
+      >
+        <Image
+          src="/images/logo.png"
+          alt="Gauss Maths"
+          width={dim * 2}
+          height={dim * 2}
+          priority
+          className="size-full object-cover"
+        />
+      </div>
+      {showText ? (
+        <span className={cn('text-lg font-extrabold tracking-tight', light ? 'text-white' : 'text-brand')}>
+          Gauss Maths
+        </span>
+      ) : null}
       {tag ? (
         <span
           className={cn(

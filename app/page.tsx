@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, BookOpen, ClipboardCheck, FileText, LineChart, ShieldCheck, GraduationCap } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { buttonClass } from '@/components/ui'
@@ -38,24 +39,44 @@ export default async function HomePage() {
           </nav>
         </div>
 
-        <section className="mx-auto max-w-6xl px-5 pt-10 pb-20 sm:pt-16 sm:pb-28">
-          <p className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-lime">
-            Maths coaching · Classes 6–12
-          </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-white text-balance sm:text-6xl">
-            Learn maths with clarity. Track every step of progress.
-          </h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75 text-pretty">
-            The Gauss Maths portal brings tests, homework, study material and report cards together for students — with a separate,
-            secure console for teachers.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="/sign-up" className={`${buttonClass.lime} px-5 py-3 text-base`}>
-              Register as student <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-            <Link href="/sign-in" className="inline-flex items-center rounded-lg border border-white/25 px-5 py-3 text-base font-semibold text-white hover:bg-white/10">
-              Student sign in
-            </Link>
+        <section className="mx-auto max-w-6xl px-5 pt-8 pb-20 sm:pt-14 sm:pb-28">
+          <div className="grid items-center gap-10 lg:grid-cols-12">
+            <div className="lg:col-span-7">
+              <p className="inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-lime">
+                Maths coaching · Classes 6–12
+              </p>
+              <h1 className="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-white text-balance sm:text-6xl">
+                Learn maths with clarity. Track every step of progress.
+              </h1>
+              <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75 text-pretty">
+                The Gauss Maths portal brings tests, homework, study material and report cards together for students — with a separate,
+                secure console for teachers.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href="/sign-up" className={`${buttonClass.lime} px-5 py-3 text-base`}>
+                  Register as student <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+                <Link href="/sign-in" className="inline-flex items-center rounded-lg border border-white/25 px-5 py-3 text-base font-semibold text-white hover:bg-white/10">
+                  Student sign in
+                </Link>
+              </div>
+            </div>
+
+            <div className="flex justify-center lg:col-span-5">
+              <div className="relative flex items-center justify-center">
+                <div className="absolute -inset-4 rounded-full bg-lime/20 blur-3xl" />
+                <div className="relative size-56 sm:size-72 overflow-hidden rounded-full p-2 ring-4 ring-white/15 bg-brand-soft shadow-2xl transition hover:scale-105">
+                  <Image
+                    src="/images/logo.png"
+                    alt="Gauss Maths emblem"
+                    width={288}
+                    height={288}
+                    priority
+                    className="size-full rounded-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </section>
       </header>
@@ -115,8 +136,11 @@ export default async function HomePage() {
       </main>
 
       <footer className="border-t border-line">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-6 text-sm text-muted sm:flex-row sm:justify-between">
-          <p>{`© ${new Date().getFullYear()} Gauss Maths`}</p>
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-6 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <Logo size="sm" />
+            <p className="text-xs">{`© ${new Date().getFullYear()} Gauss Maths. All rights reserved.`}</p>
+          </div>
           <a href="mailto:gaussmaths26@gmail.com" className="hover:text-ink">
             gaussmaths26@gmail.com
           </a>

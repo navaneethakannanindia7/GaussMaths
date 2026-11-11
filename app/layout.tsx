@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   title: 'Gauss Maths | Student Portal & Admin',
   description:
     'Gauss Maths learning portal — tests, study resources, homework submissions and progress reports for students, with a separate admin console for teachers.',
+  icons: {
+    icon: '/images/logo.png',
+    apple: '/images/logo.png',
+  },
 }
 
 export const viewport: Viewport = {
