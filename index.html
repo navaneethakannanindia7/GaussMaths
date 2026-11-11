@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gauss Maths</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- KaTeX for crisp mathematical formulas rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <!-- Chart.js for student progress and performance reports -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Custom Gauss Maths Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- ======================================================== -->
+    <!-- TOP PC APPLICATION BAR                                   -->
+    <!-- ======================================================== -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm w-full">
+        <div class="w-full px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between gap-4">
+            
+            <!-- Left: Mobile Menu Toggle & Brand Logo -->
+            <div class="flex items-center space-x-3 shrink-0">
+                <button id="btnToggleSidebar" onclick="window.gaussApp.toggleSidebar()" class="md:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100 transition">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+
+                <div class="w-12 h-12 rounded-full overflow-hidden shadow-md flex items-center justify-center cursor-pointer bg-white border-2 border-[#C1FF72] hover:scale-105 transition-transform shrink-0" onclick="window.gaussApp.navigateTo('home')" title="Gauss Maths">
+                    <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                </div>
+                <div class="cursor-pointer" onclick="window.gaussApp.navigateTo('home')">
+                    <h1 class="text-xl font-black text-slate-900 tracking-tight leading-none">Gauss Maths</h1>
+                </div>
+            </div>
+
+            <!-- Center: PC Global Search Bar -->
+            <div id="globalSearchContainer" class="flex-1 max-w-xl mx-2 relative hidden md:block">
+                <div class="relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="globalSearchInput" placeholder="Search tests, study resources, formulas... (Ctrl+K)" 
+                        class="w-full pl-10 pr-12 py-2 text-xs bg-slate-100 hover:bg-slate-50 focus:bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F] focus:outline-none transition">
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold font-mono text-slate-400 bg-slate-200/80 px-1.5 py-0.5 rounded">Ctrl+K</span>
+                </div>
+
+                <!-- Live Search Results Dropdown -->
+                <div id="globalSearchResultsDropdown" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-50">
+                    <div id="globalSearchResultsList" class="search-results-dropdown divide-y divide-slate-100">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: OAuth Sign-In, Role Switcher & Student Profile -->
+            <div class="flex items-center space-x-2 sm:space-x-3 shrink-0">
+                <!-- Student Access Action Button (Access Portal / Log Out) -->
+                <button id="btnStudentAuth" onclick="window.gaussAuth.openAccessModal('token')" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#C1FF72] hover:bg-[#A9F447] text-[#1E1349] shadow-sm transition flex items-center">
+                    <i data-lucide="key" class="w-3.5 h-3.5 mr-1.5 text-[#1E1349]"></i>
+                    <span>Access Portal</span>
+                </button>
+
+                <!-- Student Profile Avatar -->
+                <div class="flex items-center space-x-2.5 pl-2 border-l border-slate-200 cursor-pointer" onclick="window.gaussAuth.openAccessModal('token')" title="Student Access & Account Details">
+                    <div id="headerUserAvatar" class="w-9 h-9 rounded-xl bg-[#291B5F] text-[#C1FF72] border border-[#3D298D] flex items-center justify-center font-black text-xs shadow-sm">
+                        <span>ST</span>
+                    </div>
+                    <div class="hidden xl:block text-left">
+                        <div class="flex items-center space-x-1.5">
+                            <span id="headerUserName" class="text-xs font-bold text-slate-900 block leading-tight">Student</span>
+                            <span id="headerStudentStatusBadge" class="hidden px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"></span>
+                        </div>
+                        <span id="headerUserRoll" class="text-[10px] text-slate-500">Roll #GAUSS-1001</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================================== -->
+    <!-- PC MAIN APPLICATION LAYOUT (DESKTOP SIDEBAR + CONTENT)   -->
+    <!-- ======================================================== -->
+    <div class="flex flex-1 w-full relative">
+
+        <!-- 1. LEFT DESKTOP SIDEBAR NAVIGATION -->
+        <aside id="desktopSidebar" class="w-64 bg-white border-r border-slate-200 shrink-0 hidden md:flex flex-col justify-between p-4 sticky top-[65px] h-[calc(100vh-65px)] overflow-y-auto">
+            <div class="space-y-6">
+                <!-- Navigation Section -->
+                <div>
+                    <span class="text-[10px] font-black tracking-wider text-slate-400 uppercase px-3 block mb-2">Student Portal</span>
+                    <nav class="space-y-1">
+                        <button onclick="window.gaussApp.navigateTo('home')" data-tab="home" class="sidebar-nav-item w-full text-left active">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3"></i>
+                            <span>Dashboard</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('chapters')" data-tab="chapters" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="clipboard-check" class="w-4 h-4 mr-3"></i>
+                            <span>Assigned Tests</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('resources')" data-tab="resources" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="book-marked" class="w-4 h-4 mr-3"></i>
+                            <span>Study Resources Library</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('file-uploads')" data-tab="file-uploads" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="upload-cloud" class="w-4 h-4 mr-3"></i>
+                            <span>Homework & Doubts</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('reports')" data-tab="reports" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 mr-3"></i>
+                            <span>Performance & Reports</span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer -->
+            <div class="pt-4 border-t border-slate-200">
+                <div class="flex items-center space-x-3 px-2 py-1.5 rounded-xl hover:bg-slate-50 transition cursor-pointer" onclick="window.gaussAuth.openAccessModal('token')" title="Student Access & Account Details">
+                    <div id="sidebarUserAvatar" class="w-8 h-8 rounded-lg bg-[#291B5F] text-[#C1FF72] flex items-center justify-center font-bold text-xs shadow-sm">
+                        <span>ST</span>
+                    </div>
+                    <div class="truncate">
+                        <span id="sidebarUserName" class="text-xs font-bold text-slate-900 block truncate">Student</span>
+                        <span id="sidebarUserSubtitle" class="text-[10px] text-slate-500 font-medium truncate block">Approved Student Access</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 2. MOBILE RESPONSIVE SIDEBAR DRAWER (FOR SMALLER SCREENS) -->
+        <div id="mobileSidebarDrawer" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm md:hidden hidden" onclick="window.gaussApp.closeSidebar()">
+            <div class="w-72 bg-white h-full p-5 flex flex-col justify-between shadow-2xl" onclick="event.stopPropagation()">
+                <div>
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
+                        <div class="flex items-center space-x-2.5">
+                            <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-white border-2 border-[#C1FF72] shadow-sm shrink-0">
+                                <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                            </div>
+                            <span class="font-black text-lg text-slate-900 tracking-tight">Gauss Maths</span>
+                        </div>
+                        <button onclick="window.gaussApp.closeSidebar()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <nav class="space-y-1">
+                        <button onclick="window.gaussApp.navigateTo('home'); window.gaussApp.closeSidebar();" data-tab="home" class="sidebar-nav-item w-full text-left active">
+                            <i data-lucide="layout-dashboard" class="w-4 h-4 mr-3"></i>
+                            <span>Dashboard</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('chapters'); window.gaussApp.closeSidebar();" data-tab="chapters" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="clipboard-check" class="w-4 h-4 mr-3"></i>
+                            <span>Assigned Tests</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('resources'); window.gaussApp.closeSidebar();" data-tab="resources" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="book-marked" class="w-4 h-4 mr-3"></i>
+                            <span>Study Resources</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('file-uploads'); window.gaussApp.closeSidebar();" data-tab="file-uploads" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="upload-cloud" class="w-4 h-4 mr-3"></i>
+                            <span>Homework & Doubts</span>
+                        </button>
+                        <button onclick="window.gaussApp.navigateTo('reports'); window.gaussApp.closeSidebar();" data-tab="reports" class="sidebar-nav-item w-full text-left">
+                            <i data-lucide="bar-chart-3" class="w-4 h-4 mr-3"></i>
+                            <span>Performance Reports</span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. MAIN PC CONTENT CANVAS -->
+        <main id="appDeviceWrapper" class="flex-1 w-full bg-slate-50 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+
+            <!-- ======================================================== -->
+            <!-- SECTION A: STUDENT PORTAL ROOT                           -->
+            <!-- ======================================================== -->
+            <div id="studentPortalRoot" class="max-w-7xl mx-auto space-y-6">
+
+                <!-- VIEW 1: STUDENT DASHBOARD / HOME -->
+                <section id="view-home" class="view-panel space-y-6">
+                    
+                    <!-- Hero Welcome Banner -->
+                    <div class="gauss-header-gradient rounded-3xl p-6 sm:p-8 text-white shadow-lg relative overflow-hidden">
+                        <div class="relative z-10 max-w-3xl">
+                            <h2 id="homeWelcomeHeading" class="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+                                Welcome @Student
+                            </h2>
+                            <p class="text-sm text-slate-200 mt-2 leading-relaxed">
+                                Review Important Questions, explore Previous Year Question sets, or launch assigned tests.
+                            </p>
+                            <div class="flex flex-wrap gap-3 mt-6">
+                                <button onclick="window.gaussApp.navigateTo('chapters')" class="px-5 py-2.5 bg-[#C1FF72] text-[#1E1349] hover:bg-[#A9F447] font-bold text-xs rounded-xl shadow-md transition flex items-center">
+                                    <i data-lucide="clipboard-check" class="w-4 h-4 mr-1.5"></i> Launch Assigned Tests
+                                </button>
+                                <button onclick="window.gaussApp.navigateTo('resources')" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-xl border border-white/30 backdrop-blur-sm transition flex items-center">
+                                    <i data-lucide="book-open" class="w-4 h-4 mr-1.5"></i> Study Resources Library
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Mathematical Background Art -->
+                        <div class="absolute right-4 -bottom-6 text-white/10 font-mono text-9xl font-black pointer-events-none select-none hidden lg:block">
+                            ∫dx
+                        </div>
+                    </div>
+
+                    <!-- Gauss Core Academic Portals Grid (Full Width 4-Card Desktop Layout) -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-extrabold text-slate-900">Academic Portals</h3>
+                            <span class="text-xs text-slate-400">Select any portal to navigate</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Card 1: Assigned Tests -->
+                            <div onclick="window.gaussApp.navigateTo('chapters')" class="gauss-card p-5 cursor-pointer hover:border-blue-400 group flex flex-col justify-between transition">
+                                <div>
+                                    <div class="icon-badge bg-[#2563EB] text-white shadow-md group-hover:scale-105 transition-transform mb-3">
+                                        <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+                                    </div>
+                                    <h4 class="font-bold text-base text-slate-900 group-hover:text-blue-600 transition-colors">Assigned Tests</h4>
+                                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Timed online tests, automatic scoring & step-by-step formula explanations.</p>
+                                </div>
+                                <span class="text-xs font-bold text-blue-600 inline-flex items-center mt-4 pt-3 border-t border-slate-100">
+                                    Explore Tests <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                                </span>
+                            </div>
+
+                            <!-- Card 2: Resources -->
+                            <div onclick="window.gaussApp.navigateTo('resources')" class="gauss-card p-5 cursor-pointer hover:border-[#291B5F] group flex flex-col justify-between transition">
+                                <div>
+                                    <div class="icon-badge bg-[#291B5F] text-[#C1FF72] shadow-md group-hover:scale-105 transition-transform mb-3">
+                                        <i data-lucide="folder" class="w-6 h-6"></i>
+                                    </div>
+                                    <h4 class="font-bold text-base text-slate-900 group-hover:text-[#291B5F] transition-colors">Study Resources</h4>
+                                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Curated Important Questions and Previous Year Question banks (PYQs).</p>
+                                </div>
+                                <span class="text-xs font-bold text-[#291B5F] inline-flex items-center mt-4 pt-3 border-t border-slate-100">
+                                    Access Library <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                                </span>
+                            </div>
+
+                            <!-- Card 3: Report Card -->
+                            <div onclick="window.gaussApp.navigateTo('reports')" class="gauss-card p-5 cursor-pointer hover:border-emerald-400 group flex flex-col justify-between transition">
+                                <div>
+                                    <div class="icon-badge bg-[#0D9488] text-white shadow-md group-hover:scale-105 transition-transform mb-3">
+                                        <i data-lucide="file-check" class="w-6 h-6"></i>
+                                    </div>
+                                    <h4 class="font-bold text-base text-slate-900 group-hover:text-emerald-600 transition-colors">Performance Reports</h4>
+                                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Interactive score progression charts, chapter mastery breakdowns & certified marksheets.</p>
+                                </div>
+                                <span class="text-xs font-bold text-emerald-600 inline-flex items-center mt-4 pt-3 border-t border-slate-100">
+                                    View Score Analytics <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                                </span>
+                            </div>
+
+                            <!-- Card 4: Upload Homework -->
+                            <div onclick="window.gaussApp.navigateTo('file-uploads')" class="gauss-card p-5 cursor-pointer hover:border-purple-400 group flex flex-col justify-between transition">
+                                <div>
+                                    <div class="icon-badge bg-[#7C3AED] text-white shadow-md group-hover:scale-105 transition-transform mb-3">
+                                        <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+                                    </div>
+                                    <h4 class="font-bold text-base text-slate-900 group-hover:text-purple-600 transition-colors">Submit Homework</h4>
+                                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">Upload handwritten worksheets for teacher scoring and feedback remarks.</p>
+                                </div>
+                                <span class="text-xs font-bold text-purple-600 inline-flex items-center mt-4 pt-3 border-t border-slate-100">
+                                    Submit Worksheet <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 2: ASSIGNED TESTS -->
+                <section id="view-chapters" class="view-panel space-y-6 hidden">
+                    <!-- Breadcrumbs & Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-500 mb-1">
+                                <button onclick="window.gaussApp.navigateTo('home')" class="hover:text-[#291B5F]">Dashboard</button>
+                                <span>/</span>
+                                <span class="text-slate-800 font-semibold">Assigned Tests</span>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Assigned Tests</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Timed online tests with automatic scoring, question palette, and step-by-step mathematical solutions.</p>
+                        </div>
+                    </div>
+
+                    <!-- Tests Grid Container -->
+                    <div id="chaptersListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- VIEW 3: CHAPTER TESTS DETAIL -->
+                <section id="view-tests-list" class="view-panel space-y-6 hidden">
+                    <!-- Breadcrumbs & Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-500 mb-1">
+                                <button onclick="window.gaussApp.navigateTo('home')" class="hover:text-[#291B5F]">Dashboard</button>
+                                <span>/</span>
+                                <button onclick="window.gaussApp.navigateTo('chapters')" class="hover:text-[#291B5F]">Assigned Tests</button>
+                                <span>/</span>
+                                <span id="testsHeaderChapterTitle" class="text-slate-800 font-semibold">Mathematics</span>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Assigned Tests</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Timed online tests with instant grading and step-by-step mathematical solutions.</p>
+                        </div>
+
+                        <button onclick="window.gaussApp.navigateTo('chapters')" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center">
+                            <i data-lucide="arrow-left" class="w-4 h-4 mr-1.5"></i> Back to Tests
+                        </button>
+                    </div>
+
+                    <!-- Test Instructions Alert Banner -->
+                    <div class="p-4 bg-[#F6FEED] rounded-2xl border border-[#EBFDC8] flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-[#291B5F] text-[#C1FF72] flex items-center justify-center shrink-0">
+                                <i data-lucide="clock" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-[#1E1349]">Examination Guidelines</h4>
+                                <p class="text-xs text-[#291B5F] mt-0.5">Each test contains Multiple-Choice Questions with negative marking review and KaTeX mathematical formulas.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tests List Grid Container -->
+                    <div id="chapterTestsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- VIEW 4: STUDY RESOURCES CATEGORIES -->
+                <section id="view-resources" class="view-panel space-y-6 hidden">
+                    <!-- Breadcrumbs & Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-500 mb-1">
+                                <button onclick="window.gaussApp.navigateTo('home')" class="hover:text-[#291B5F]">Dashboard</button>
+                                <span>/</span>
+                                <span class="text-slate-800 font-semibold">Study Resources</span>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Important Questions & Previous Year Questions</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Curated high-yield Important Questions and Previous Year Question banks (PYQs) for Classes 8–12.</p>
+                        </div>
+                    </div>
+
+                    <!-- Categories Grid Container (Only Important Questions & PYQ) -->
+                    <div id="resourcesCategoriesList" class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- VIEW 5: CATEGORY RESOURCE ITEMS DETAIL -->
+                <section id="view-resource-items" class="view-panel space-y-6 hidden">
+                    <!-- Breadcrumbs & Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-500 mb-1">
+                                <button onclick="window.gaussApp.navigateTo('home')" class="hover:text-[#291B5F]">Dashboard</button>
+                                <span>/</span>
+                                <button onclick="window.gaussApp.navigateTo('resources')" class="hover:text-[#291B5F]">Resources</button>
+                                <span>/</span>
+                                <span id="resCategoryDetailTitle" class="text-slate-800 font-semibold">Study Material</span>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Curated Mathematics Material</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Preview documents with LaTeX math formulas or download printable PDF compendiums.</p>
+                        </div>
+
+                        <button onclick="window.gaussApp.navigateTo('resources')" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition flex items-center">
+                            <i data-lucide="arrow-left" class="w-4 h-4 mr-1.5"></i> Back to Categories
+                        </button>
+                    </div>
+
+                    <!-- Resource Items Grid Container -->
+                    <div id="categoryResourceItemsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Populated by JS -->
+                    </div>
+                </section>
+
+                <!-- VIEW 6: STUDENT FILE UPLOADS & ASSIGNMENT SUBMISSION -->
+                <section id="view-file-uploads" class="view-panel space-y-6 hidden">
+                    <!-- Breadcrumbs & Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-500 mb-1">
+                                <button onclick="window.gaussApp.navigateTo('home')" class="hover:text-[#291B5F]">Dashboard</button>
+                                <span>/</span>
+                                <span class="text-slate-800 font-semibold">Homework & Doubts</span>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Assignment & Doubt Submission Portal</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Upload handwritten proof worksheets or question doubts for faculty scoring and feedback.</p>
+                        </div>
+                    </div>
+
+                    <!-- 2-Column Desktop Grid for File Upload -->
+                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                        
+                        <!-- Left 5 cols: Upload Form -->
+                        <div class="lg:col-span-5">
+                            <div class="gauss-card p-6 sticky top-24">
+                                <h3 class="font-bold text-base text-slate-900 mb-1 flex items-center">
+                                    <i data-lucide="upload" class="w-5 h-5 text-[#291B5F] mr-2"></i> Submit Handwritten Solutions
+                                </h3>
+                                <p class="text-xs text-slate-500 mb-5">Attach your homework PDF or photos for Er. R. K. Gauss to evaluate.</p>
+
+                                <form id="studentFileUploadForm" onsubmit="window.gaussApp.handleStudentFileUpload(event)" class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Assignment / Worksheet Title *</label>
+                                        <input type="text" id="studentUploadTitle" placeholder="e.g. Straight Lines Ex 10.3 Proofs" required 
+                                            class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F] focus:outline-none">
+                                    </div>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Chapter / Topic</label>
+                                            <input type="text" id="studentUploadChapter" placeholder="e.g. Straight Lines" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F] focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Select File (PDF / Images)</label>
+                                            <input type="file" id="studentUploadFile" accept=".pdf,image/*" class="w-full text-xs py-1.5 text-slate-500">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-700 mb-1">Student Notes / Question Doubts</label>
+                                        <textarea id="studentUploadNotes" rows="3" placeholder="Mention any specific theorem or step where you got stuck..." 
+                                            class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F] focus:outline-none"></textarea>
+                                    </div>
+
+                                    <button type="submit" class="w-full py-3 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center">
+                                        <i data-lucide="send" class="w-4 h-4 mr-1.5"></i> Upload for Faculty Review
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right 7 cols: Submission History & Teacher Remarks -->
+                        <div class="lg:col-span-7 space-y-4">
+                            <h4 class="text-sm font-black text-slate-900 uppercase tracking-wide">My Submissions & Teacher Scoring</h4>
+                            <div id="studentSubmissionsList">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- VIEW 7: PROGRESS REPORTS & ANALYTICS -->
+                <section id="view-reports" class="view-panel space-y-6 hidden">
+                    <!-- Breadcrumbs & Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                        <div>
+                            <div class="flex items-center space-x-2 text-xs text-slate-500 mb-1">
+                                <button onclick="window.gaussApp.navigateTo('home')" class="hover:text-[#291B5F]">Dashboard</button>
+                                <span>/</span>
+                                <span class="text-slate-800 font-semibold">Performance Analytics</span>
+                            </div>
+                            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Student Performance & Certified Reports</h2>
+                            <p class="text-xs text-slate-500 mt-0.5">Comprehensive scorecards, progression trends, and certified report card export.</p>
+                        </div>
+
+                        <button onclick="window.gaussReports.openOfficialReportCard()" class="px-5 py-2.5 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center">
+                            <i data-lucide="printer" class="w-4 h-4 mr-1.5"></i> View Official Certified Report Card
+                        </button>
+                    </div>
+
+                    <!-- KPI Tiles -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="p-4 bg-[#F6FEED] rounded-2xl border border-[#EBFDC8]">
+                            <span class="text-xs font-bold text-[#291B5F] uppercase tracking-wider block">Cumulative Score</span>
+                            <span id="repAvgScore" class="text-3xl font-black text-[#1E1349] mt-1 block">84.8%</span>
+                            <span class="text-[11px] text-[#291B5F] font-medium">Distinction Division</span>
+                        </div>
+                        <div class="p-4 bg-blue-50 rounded-2xl border border-blue-200">
+                            <span class="text-xs font-bold text-blue-800 uppercase tracking-wider block">Assigned Tests Taken</span>
+                            <span id="repTestsCount" class="text-3xl font-black text-blue-950 mt-1 block">14</span>
+                            <span class="text-[11px] text-blue-700 font-medium">Across Class 11 Syllabus</span>
+                        </div>
+                        <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-200">
+                            <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider block">Attendance</span>
+                            <span id="repAttendance" class="text-3xl font-black text-emerald-950 mt-1 block">96.5%</span>
+                            <span class="text-[11px] text-emerald-700 font-medium">Regular Student</span>
+                        </div>
+                        <div class="p-4 bg-purple-50 rounded-2xl border border-purple-200">
+                            <span class="text-xs font-bold text-purple-800 uppercase tracking-wider block">Class Standing</span>
+                            <span id="repRank" class="text-3xl font-black text-purple-950 mt-1 block">#3 in Class</span>
+                            <span class="text-[11px] text-purple-700 font-medium">Top 5% Percentile</span>
+                        </div>
+                    </div>
+
+                    <!-- 2-Column Desktop Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Score Progression Chart -->
+                        <div class="gauss-card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-sm text-slate-800">Score Progression Trend</h4>
+                                <span class="text-xs text-slate-400">Last 5 Tests</span>
+                            </div>
+                            <div class="h-64 w-full">
+                                <canvas id="chartScoreTrend"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chapter Mastery Chart -->
+                        <div class="gauss-card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h4 class="font-bold text-sm text-slate-800">Chapter Mastery Breakdown</h4>
+                                <span class="text-xs text-slate-400">Mathematics Curriculum</span>
+                            </div>
+                            <div class="h-64 w-full">
+                                <canvas id="chartChapterMastery"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Test History Table -->
+                    <div class="gauss-card p-6">
+                        <h4 class="text-sm font-black text-slate-900 uppercase tracking-wide mb-4">Detailed Test Series History</h4>
+                        <div id="repTestHistoryList" class="space-y-3">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- PC MODALS & DIALOGS                                      -->
+    <!-- ======================================================== -->
+
+    <!-- 1. COMPUTER BASED TEST (CBT) EXAM TAKING MODAL -->
+    <div id="testTakingModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <!-- Test Header -->
+            <div class="gauss-header-gradient px-6 py-4 text-white flex items-center justify-between">
+                <div>
+                    <span id="examChapterBadge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-white/20 uppercase tracking-wide">Straight Lines</span>
+                    <h3 id="examTestTitle" class="text-lg font-bold mt-1">Straight Lines Test 01</h3>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="px-4 py-2 bg-white text-slate-900 font-mono font-bold rounded-xl shadow text-sm flex items-center">
+                        <i data-lucide="clock" class="w-4 h-4 mr-2 text-[#291B5F]"></i>
+                        <span id="examTimer">20:00</span>
+                    </div>
+                    <button onclick="window.gaussTestEngine.confirmSubmit()" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow transition">
+                        Finish & Submit Test
+                    </button>
+                </div>
+            </div>
+
+            <!-- Test Content Grid (Question area + Question Palette) -->
+            <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- Left 3 cols: Question & Options -->
+                <div class="lg:col-span-3 space-y-6">
+                    <div class="flex items-center justify-between border-b pb-3">
+                        <span class="text-sm font-bold text-[#291B5F]">
+                            <span id="examCurrentQNumber">Question 1</span> of <span id="examTotalQCount">5</span>
+                        </span>
+                        <div class="space-x-2">
+                            <button id="examBtnReview" onclick="window.gaussTestEngine.toggleReview()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">
+                                <i data-lucide="flag" class="w-3.5 h-3.5 inline mr-1"></i> Mark for Review
+                            </button>
+                            <button onclick="window.gaussTestEngine.clearResponse()" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-800">
+                                Clear Response
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Question Prompt with Math Rendering -->
+                    <div id="examQuestionText" class="text-base sm:text-lg font-medium text-slate-900 leading-relaxed min-h-[70px]">
+                        <!-- Rendered by JS -->
+                    </div>
+
+                    <!-- Options Container -->
+                    <div id="examOptionsContainer" class="space-y-3 pt-2">
+                        <!-- Populated by JS -->
+                    </div>
+
+                    <!-- Navigation Footer in Modal -->
+                    <div class="flex items-center justify-between pt-6 border-t">
+                        <button id="examBtnPrev" onclick="window.gaussTestEngine.loadQuestion(window.gaussTestEngine.currentQuestionIndex - 1)" class="px-5 py-2.5 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-40">
+                            ← Previous Question
+                        </button>
+                        <button id="examBtnNext" class="px-6 py-2.5 bg-[#291B5F] hover:bg-[#1E1349] text-white rounded-xl text-xs font-bold shadow">
+                            Next Question →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right 1 col: Question Palette -->
+                <div class="lg:col-span-1 border-t lg:border-t-0 lg:border-l lg:pl-6 space-y-5">
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wide">Question Palette</h4>
+                    <div id="examQuestionPalette" class="flex flex-wrap gap-2">
+                        <!-- Palette buttons 1, 2, 3... -->
+                    </div>
+
+                    <div class="pt-4 border-t space-y-2.5 text-xs text-slate-600">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="w-3.5 h-3.5 rounded bg-emerald-500"></span>
+                            <span>Answered</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="w-3.5 h-3.5 rounded bg-purple-500"></span>
+                            <span>Marked for Review</span>
+                        </div>
+                        <div class="flex items-center space-x-2.5">
+                            <span class="w-3.5 h-3.5 rounded bg-slate-200 border"></span>
+                            <span>Unanswered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. TEST RESULT & SCORE CARD ANALYSIS MODAL -->
+    <div id="testResultModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <div class="gauss-header-gradient px-6 py-4 text-white flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-bold">Exam Performance Analysis</h3>
+                    <p id="resTestTitle" class="text-xs text-slate-200">Straight Lines Test 01</p>
+                </div>
+                <button onclick="document.getElementById('testResultModal').classList.add('hidden')" class="p-1 hover:bg-white/20 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-5">
+                <!-- Score Cards Banner -->
+                <div class="p-5 bg-[#F6FEED] rounded-2xl border border-[#EBFDC8] flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <span class="text-xs font-semibold text-[#291B5F] uppercase tracking-wide block">Your Score Awarded</span>
+                        <div class="flex items-baseline space-x-2 mt-1">
+                            <span id="resScoreDisplay" class="text-3xl font-black text-[#1E1349]">16 / 20</span>
+                            <span id="resPercentageBadge" class="px-3 py-1 bg-[#291B5F] text-[#C1FF72] text-xs font-bold rounded-full">80% Score</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span id="resPerformanceBadge" class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full block mb-1">
+                            🌟 Excellent Performance!
+                        </span>
+                        <span class="text-xs text-slate-500">Time Taken: <strong id="resTimeSpent" class="text-slate-800">14m 20s</strong></span>
+                    </div>
+                </div>
+
+                <!-- Detailed Question Review -->
+                <h4 class="font-bold text-sm text-slate-900 pt-2">Step-by-step Mathematical Solutions</h4>
+                <div id="resQuestionsReviewList" class="space-y-3">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="pt-4 flex justify-end space-x-3">
+                    <button onclick="document.getElementById('testResultModal').classList.add('hidden'); window.gaussApp.navigateTo('reports');" class="px-5 py-2.5 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow">
+                        Go to My Progress Reports →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. RESOURCE READER & FORMULA VIEWER MODAL -->
+    <div id="resourceReaderModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="gauss-header-gradient px-6 py-4 text-white flex items-center justify-between">
+                <div>
+                    <h3 id="readerResTitle" class="text-base font-bold">Formula Compendium</h3>
+                    <p id="readerResChapter" class="text-xs text-slate-200">Straight Lines • Revision Notes</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="alert('Downloading high-resolution study material PDF...')" class="px-3.5 py-1.5 bg-[#C1FF72] text-[#1E1349] hover:bg-[#A9F447] text-xs font-bold rounded-xl shadow-sm flex items-center">
+                        <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download PDF
+                    </button>
+                    <button onclick="document.getElementById('resourceReaderModal').classList.add('hidden')" class="p-1.5 hover:bg-white/20 rounded-full">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 sm:p-8 overflow-y-auto text-sm leading-relaxed text-slate-800">
+                <div id="readerResContent" class="space-y-4 font-serif">
+                    <!-- Populated by JS with KaTeX math rendering -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. OFFICIAL REPORT CARD PRINTABLE MODAL -->
+    <div id="officialReportCardModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+            <div class="bg-slate-900 px-6 py-4 text-white flex items-center justify-between">
+                <h3 class="text-sm font-bold">Gauss Maths — Official Certified Progress Report</h3>
+                <div class="flex items-center space-x-3">
+                    <button onclick="window.gaussReports.printReportCard()" class="px-4 py-1.5 bg-[#C1FF72] hover:bg-[#A9F447] text-[#1E1349] font-bold text-xs rounded-xl shadow flex items-center">
+                        <i data-lucide="printer" class="w-3.5 h-3.5 mr-1.5"></i> Print / Save PDF
+                    </button>
+                    <button onclick="document.getElementById('officialReportCardModal').classList.add('hidden')" class="p-1 text-slate-300 hover:text-white">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Printable Certificate Body -->
+            <div class="p-6 sm:p-10 overflow-y-auto space-y-6 bg-white" id="printableCertificate">
+                <!-- Institute Header -->
+                <div class="border-b-2 border-[#291B5F] pb-4 flex items-center justify-between">
+                    <div class="flex items-center space-x-3.5">
+                        <div class="w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-[#C1FF72] shadow-sm bg-white flex items-center justify-center">
+                            <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                        </div>
+                        <div>
+                            <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">GAUSS MATHS</h2>
+                            <p class="text-xs text-slate-500 uppercase tracking-widest mt-0.5">Centre of Excellence in Pure & Applied Mathematics</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block">Report Card ID</span>
+                        <span class="font-mono text-xs font-bold text-[#291B5F]">GM-REP-2026-X09</span>
+                    </div>
+                </div>
+
+                <!-- Student Bio Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                    <div>
+                        <span class="text-slate-400 block">Student Name</span>
+                        <strong id="orcStudentName" class="text-slate-900 text-sm">Student</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Enrollment ID</span>
+                        <strong id="orcStudentId" class="text-slate-900 text-sm">GAUSS-1001</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Class / Grade</span>
+                        <strong id="orcBatch" class="text-slate-900">Class 11 Mathematics</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block">Date Issued</span>
+                        <strong id="orcDateIssued" class="text-slate-900">09 November 2026</strong>
+                    </div>
+                </div>
+
+                <!-- Highlights -->
+                <div class="grid grid-cols-4 gap-3 text-center">
+                    <div class="p-3 bg-[#F6FEED] rounded-xl border border-[#EBFDC8]">
+                        <span class="text-[11px] text-[#291B5F] uppercase block">Cumulative GPA</span>
+                        <span id="orcAvgScore" class="text-2xl font-black text-[#1E1349]">84.8%</span>
+                    </div>
+                    <div class="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                        <span class="text-[11px] text-emerald-800 uppercase block">Attendance</span>
+                        <span id="orcAttendance" class="text-2xl font-black text-emerald-950">96.5%</span>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded-xl border border-blue-200">
+                        <span class="text-[11px] text-blue-800 uppercase block">Class Standing</span>
+                        <span id="orcRank" class="text-sm font-black text-blue-950 block mt-2">Rank 3 (Top 5%)</span>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-xl border border-purple-200">
+                        <span class="text-[11px] text-purple-800 uppercase block">Overall Grade</span>
+                        <span id="orcGrade" class="text-sm font-black text-purple-950 block mt-2">A+ (Outstanding)</span>
+                    </div>
+                </div>
+
+                <!-- Test Breakdown Table -->
+                <div>
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wide mb-2">Examination & Quiz Records</h4>
+                    <table class="w-full text-left border">
+                        <thead class="bg-slate-100 text-[11px] uppercase font-bold text-slate-700">
+                            <tr>
+                                <th class="py-2.5 px-3">#</th>
+                                <th class="py-2.5 px-3">Test Series Title</th>
+                                <th class="py-2.5 px-3">Chapter</th>
+                                <th class="py-2.5 px-3 text-center">Marks</th>
+                                <th class="py-2.5 px-3 text-center">Percentage</th>
+                                <th class="py-2.5 px-3 text-center">Classification</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orcTestTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Remarks & Signatures -->
+                <div class="pt-6 border-t flex items-end justify-between text-xs">
+                    <div>
+                        <span class="font-bold text-slate-800 block">Faculty Remarks:</span>
+                        <p class="text-slate-600 max-w-sm mt-1 leading-relaxed">
+                            "The student has shown exemplary understanding in Coordinate Geometry and Straight Lines. Rigorous presentation of step-by-step mathematical proofs is highly commendable."
+                        </p>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-serif italic text-base text-slate-800 mb-1">Er. R. K. Gauss</div>
+                        <div class="w-36 border-b border-slate-400 mx-auto"></div>
+                        <span class="text-[10px] text-slate-500 mt-1 block">Head of Mathematics</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. QUESTION PAPER PDF VIEWER MODAL -->
+    <div id="questionPaperViewerModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+            <!-- Header -->
+            <div class="gauss-header-gradient px-6 py-4 text-white flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full overflow-hidden shadow-sm flex items-center justify-center bg-white border-2 border-[#C1FF72] p-0.5 shrink-0">
+                        <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h3 id="qpModalTitle" class="text-base font-extrabold leading-tight">Question Paper</h3>
+                        <p id="qpModalMeta" class="text-xs text-slate-200">Class 11 Mathematics • 50 Marks • 90 Mins</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="qpBtnDownload" onclick="window.gaussApp.downloadCurrentQuestionPaper()" class="px-3.5 py-1.5 bg-[#C1FF72] text-[#1E1349] hover:bg-[#A9F447] font-bold text-xs rounded-xl shadow transition flex items-center">
+                        <i data-lucide="download" class="w-3.5 h-3.5 mr-1.5"></i> Download PDF Paper
+                    </button>
+                    <button onclick="document.getElementById('questionPaperViewerModal').classList.add('hidden')" class="p-1.5 hover:bg-white/20 rounded-full transition">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paper Body -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50">
+                <!-- Top Examination Instructions Banner -->
+                <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm flex items-start space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-[#F6FEED] text-[#291B5F] flex items-center justify-center shrink-0 mt-0.5 border border-[#EBFDC8]">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                    </div>
+                    <div class="text-xs space-y-1">
+                        <span class="font-bold text-slate-900 block">Candidate Instructions:</span>
+                        <p class="text-slate-600 leading-relaxed">
+                            Write all mathematical solutions with step-by-step reasoning and neat diagrams on white paper. Once completed, scan or photograph your work as a single PDF and submit using the <strong>Upload Answer Sheet (PDF)</strong> button before the deadline.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Live PDF Frame or Formatted Question Sheet Container -->
+                <div id="qpViewerContent" class="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
+                <span class="text-xs text-slate-500 font-medium">Gauss Maths Examination Board • Official Question Paper</span>
+                <div class="flex space-x-2">
+                    <button onclick="document.getElementById('questionPaperViewerModal').classList.add('hidden')" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition">
+                        Close
+                    </button>
+                    <button id="qpBtnOpenSubmitModal" onclick="window.gaussApp.openSubmitFromQuestionPaper()" class="px-5 py-2 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow transition flex items-center">
+                        <i data-lucide="upload" class="w-3.5 h-3.5 mr-1.5"></i> Submit My Answer Sheet (PDF)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. STUDENT TEST PDF ANSWER SHEET SUBMISSION MODAL -->
+    <div id="studentTestPdfSubmitModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+            <!-- Modal Header -->
+            <div class="gauss-header-gradient px-6 py-5 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full overflow-hidden shadow-sm flex items-center justify-center bg-white border-2 border-[#C1FF72] p-0.5 shrink-0">
+                        <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold leading-tight">Submit Answer Sheet (PDF)</h3>
+                        <p id="studentSubmitModalTestTitle" class="text-xs text-slate-200">Term 1 Comprehensive Exam</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('studentTestPdfSubmitModal').classList.add('hidden')" class="p-1.5 hover:bg-white/20 rounded-full transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form onsubmit="window.gaussApp.handleStudentPdfTestSubmission(event)" class="p-6 space-y-4">
+                <input type="hidden" id="studentSubmitTestId">
+
+                <!-- Test Details Callout -->
+                <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Total Marks</span>
+                        <strong id="studentSubmitModalMarks" class="text-slate-900 font-extrabold text-sm">50</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Time Allowed</span>
+                        <strong id="studentSubmitModalDuration" class="text-slate-900 font-extrabold text-sm">90 Mins</strong>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase font-bold">Status</span>
+                        <strong id="studentSubmitModalStatus" class="text-amber-600 font-bold text-xs">Pending</strong>
+                    </div>
+                </div>
+
+                <!-- PDF Answer Sheet File Upload Dropzone -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Upload Your Solved Answer Sheet (PDF) *
+                    </label>
+                    <div class="p-5 border-2 border-dashed border-[#291B5F]/30 hover:border-[#291B5F] bg-[#F6FEED]/50 hover:bg-[#F6FEED] rounded-2xl text-center cursor-pointer transition" onclick="document.getElementById('studentAnswerPdfFileInput').click()">
+                        <input type="file" id="studentAnswerPdfFileInput" accept=".pdf,application/pdf" class="hidden" onchange="window.gaussApp.handleStudentAnswerFileSelected(this)">
+                        <div class="w-12 h-12 rounded-2xl bg-[#F6FEED] text-[#291B5F] border border-[#EBFDC8] flex items-center justify-center mx-auto mb-2">
+                            <i data-lucide="file-up" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-bold text-slate-800 block">Click or Drag & Drop your PDF Answer Sheet</span>
+                        <span class="text-[11px] text-slate-500 mt-0.5 block">Accepts handwritten scanned PDFs (up to 25 MB)</span>
+                        <div id="studentAnswerPdfFileInfo" class="mt-2.5 hidden px-3 py-1.5 bg-white border border-emerald-300 text-emerald-800 rounded-xl text-xs font-bold inline-flex items-center">
+                            <i data-lucide="check" class="w-3.5 h-3.5 mr-1.5 text-emerald-600"></i>
+                            <span id="studentAnswerPdfFileName" class="truncate max-w-[280px]">AnswerSheet.pdf</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Notes / Remarks -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">
+                        Candidate Remarks or Doubts (Optional)
+                    </label>
+                    <textarea id="studentAnswerPdfNotes" rows="2" placeholder="e.g. Attempted all questions. Solved Section B with full algebraic derivations." class="w-full text-xs p-2.5 border border-slate-300 rounded-lg"></textarea>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="document.getElementById('studentTestPdfSubmitModal').classList.add('hidden')" class="px-4 py-2 border border-slate-300 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-6 py-2 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center">
+                        <i data-lucide="check-circle" class="w-3.5 h-3.5 mr-1.5"></i> Submit PDF Answer Sheet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. STUDENT ACCESS & ADMISSION GATE MODAL -->
+    <div id="studentAccessModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200">
+            <!-- Modal Header -->
+            <div class="gauss-header-gradient px-6 py-5 text-white flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full overflow-hidden shadow-sm flex items-center justify-center bg-white border-2 border-[#C1FF72] p-0.5 shrink-0">
+                        <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold leading-tight">Gauss Maths</h3>
+                        <p class="text-[11px] text-[#C1FF72] font-semibold">Student Access & Verification Gate</p>
+                    </div>
+                </div>
+                <button type="button" onclick="if(window.gaussAuth.isAuthenticated()) window.gaussAuth.closeAccessModal(); else alert('Please enter your approved student token or request admission to proceed.');" class="p-1.5 hover:bg-white/20 rounded-full transition" title="Dismiss">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Tab Switcher (Token Login vs Request Access) -->
+            <div class="flex border-b border-slate-200 px-6 pt-3 bg-slate-50">
+                <button id="tabBtnToken" type="button" onclick="window.gaussAuth.openAccessModal('token')" class="flex-1 py-2 text-xs font-bold border-b-2 border-[#291B5F] text-[#291B5F]">
+                    <i data-lucide="key" class="w-3.5 h-3.5 inline mr-1"></i> Enter Access Token
+                </button>
+                <button id="tabBtnRequest" type="button" onclick="window.gaussAuth.openAccessModal('request')" class="flex-1 py-2 text-xs font-medium text-slate-500 hover:text-slate-800 border-b-2 border-transparent">
+                    <i data-lucide="user-plus" class="w-3.5 h-3.5 inline mr-1"></i> Request Admission
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4">
+                
+                <!-- PANE 1: ENTER ACCESS CODE / TOKEN -->
+                <div id="accessPaneToken" class="space-y-4">
+                    <div class="text-center">
+                        <div class="w-11 h-11 rounded-2xl bg-[#F6FEED] text-[#291B5F] border border-[#EBFDC8] flex items-center justify-center mx-auto mb-2">
+                            <i data-lucide="lock" class="w-5 h-5"></i>
+                        </div>
+                        <h4 class="text-base font-extrabold text-slate-900">Enter Student Access Token</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto leading-relaxed">
+                            Paste the access token or invite link given to you by your teacher (Gauss Maths Admin).
+                        </p>
+                    </div>
+
+                    <form onsubmit="window.gaussAuth.handleTokenSubmit(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Access Token / Invite Link *</label>
+                            <input type="text" id="studentTokenInput" placeholder="e.g. student1001 or paste invite URL" required class="w-full text-xs p-3 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F]">
+                        </div>
+
+                        <!-- Error Alert Container -->
+                        <div id="tokenErrorNotice" class="hidden p-3 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs font-medium"></div>
+
+                        <button type="submit" class="w-full py-3 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center">
+                            <i data-lucide="unlock" class="w-4 h-4 mr-2 text-[#C1FF72]"></i>
+                            <span>Unlock Student Portal</span>
+                        </button>
+                    </form>
+
+                    <div class="pt-2 border-t border-slate-100 text-center">
+                        <span class="text-[11px] text-slate-500">Don't have an access token?</span>
+                        <button type="button" onclick="window.gaussAuth.openAccessModal('request')" class="text-[11px] font-bold text-[#291B5F] hover:underline ml-1">
+                            Request Student Access here →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PANE 2: REQUEST STUDENT ADMISSION -->
+                <div id="accessPaneRequest" class="space-y-4 hidden">
+                    <div class="text-center">
+                        <h4 class="text-base font-extrabold text-slate-900">Request Admission & Access</h4>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                            Submit your details. Your teacher will review and approve your access in the Faculty Console.
+                        </p>
+                    </div>
+
+                    <form onsubmit="window.gaussAuth.handleRequestSubmit(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Student Full Name *</label>
+                            <input type="text" id="reqStudentName" placeholder="e.g. Rahul Sharma" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F]">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Target Class *</label>
+                                <select id="reqStudentClass" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
+                                    <option value="Class 11">Class 11</option>
+                                    <option value="Class 12">Class 12</option>
+                                    <option value="Class 10">Class 10</option>
+                                    <option value="Class 09">Class 09</option>
+                                    <option value="Class 08">Class 08</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Mobile / WhatsApp</label>
+                                <input type="tel" id="reqStudentPhone" placeholder="e.g. 9876543210" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Note for Teacher (Optional)</label>
+                            <input type="text" id="reqStudentNotes" placeholder="e.g. Joined evening batch / Straight Lines" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
+                        </div>
+
+                        <button type="submit" class="w-full py-3 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center">
+                            <i data-lucide="send" class="w-4 h-4 mr-2 text-[#C1FF72]"></i>
+                            <span>Submit Admission Request</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- PANE 3: PENDING APPROVAL NOTICE -->
+                <div id="accessPanePending" class="space-y-4 hidden text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto mb-2">
+                        <i data-lucide="clock" class="w-7 h-7"></i>
+                    </div>
+                    <h4 class="text-base font-extrabold text-slate-900">Admission Pending Approval</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
+                        Hello <strong id="pendingStudentName" class="text-slate-900">Student</strong>! Your admission request for <strong id="pendingStudentClass" class="text-[#291B5F]">Class 11</strong> has been submitted.
+                    </p>
+                    <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 text-left space-y-1">
+                        <span class="font-bold block">Status: Awaiting Faculty Review</span>
+                        <p class="text-[11px] text-amber-700 leading-relaxed">
+                            The Gauss Maths administrator (Teacher) must approve your student profile in the Faculty Console before access is granted. Please check back shortly.
+                        </p>
+                    </div>
+                    <button type="button" onclick="window.gaussAuth.openAccessModal('token')" class="w-full py-2.5 border border-slate-300 text-slate-700 font-bold text-xs rounded-xl hover:bg-slate-50 transition">
+                        Back to Token Entry
+                    </button>
+                </div>
+
+                <!-- PANE 4: REQUEST SUBMITTED CONFIRMATION -->
+                <div id="accessPaneSubmitted" class="space-y-4 hidden text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-[#F6FEED] text-[#291B5F] border border-[#EBFDC8] flex items-center justify-center mx-auto mb-2">
+                        <i data-lucide="check-circle-2" class="w-7 h-7"></i>
+                    </div>
+                    <h4 class="text-base font-extrabold text-slate-900">Request Sent to Teacher!</h4>
+                    <p class="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
+                        Thank you, <strong id="submittedStudentName" class="text-slate-900">Student</strong>! Your admission request has been sent to the Gauss Maths Faculty Console.
+                    </p>
+                    <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1 text-left">
+                        <span class="text-slate-500 font-medium block">Your Access Token:</span>
+                        <span id="submittedStudentToken" class="font-mono font-bold text-sm text-[#291B5F] block select-all">gauss_token</span>
+                        <p class="text-[10px] text-slate-400">Save this code. Once your teacher approves your admission, you can use it to enter the portal anytime.</p>
+                    </div>
+                    <button type="button" onclick="window.gaussAuth.openAccessModal('token')" class="w-full py-2.5 bg-[#291B5F] text-white font-bold text-xs rounded-xl hover:bg-[#1E1349] transition">
+                        Proceed to Access Portal
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Notification Toast Container -->
+    <div id="authToast" class="hidden"></div>
+
+    <!-- App Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/test-engine.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

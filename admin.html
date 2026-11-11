@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gauss Maths — Faculty Console</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- KaTeX CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Top Faculty Header Bar -->
+    <header class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3.5">
+                <div class="w-11 h-11 rounded-full overflow-hidden shadow-sm flex items-center justify-center bg-white border-2 border-[#C1FF72] shrink-0">
+                    <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h1 class="text-lg font-black text-slate-900 tracking-tight leading-none">Gauss Maths</h1>
+                    <span class="text-[11px] font-bold text-[#291B5F] uppercase tracking-wider block mt-0.5">Faculty & Administration Console</span>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span id="adminStatusBadge" class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#F6FEED] text-[#291B5F] border border-[#EBFDC8]">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1.5 text-[#291B5F]"></i>
+                    Admin Mode
+                </span>
+                <a href="index.html" class="px-4 py-2 bg-[#C1FF72] hover:bg-[#A9F447] text-[#1E1349] font-bold text-xs rounded-xl shadow transition flex items-center">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5 mr-1.5"></i>
+                    Student Portal
+                </a>
+                <button id="btnAdminLogout" onclick="window.gaussAdmin.logout()" class="hidden px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition items-center">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5 mr-1.5"></i>
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 1. ADMIN LOGIN GATE (Shown when not authenticated) -->
+    <div id="adminLoginGate" class="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+            <!-- Header -->
+            <div class="gauss-header-admin p-8 text-center text-white relative">
+                <div class="w-16 h-16 rounded-full bg-white border-2 border-[#C1FF72] overflow-hidden flex items-center justify-center mx-auto mb-3 shadow-md">
+                    <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                </div>
+                <h2 class="text-2xl font-black tracking-tight">Faculty Console Sign In</h2>
+                <p class="text-xs text-[#C1FF72] font-semibold mt-1">Gauss Maths Administration Access</p>
+            </div>
+
+            <!-- Login Form -->
+            <form onsubmit="window.gaussAdmin.handleAdminLogin(event)" class="p-6 sm:p-8 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Admin Email Address *</label>
+                    <div class="relative">
+                        <i data-lucide="mail" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="adminLoginEmail" value="gaussmaths26@gmail@gmail.com" required placeholder="gaussmaths26@gmail@gmail.com" class="w-full pl-10 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F] font-medium">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Admin Password *</label>
+                    <div class="relative">
+                        <i data-lucide="lock" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="password" id="adminLoginPassword" required placeholder="Enter password" class="w-full pl-10 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F]">
+                    </div>
+                </div>
+
+                <!-- Error Notice Container -->
+                <div id="adminLoginError" class="hidden p-3 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs font-medium flex items-center">
+                    <i data-lucide="alert-circle" class="w-4 h-4 mr-2 shrink-0"></i>
+                    <span id="adminLoginErrorMsg">Invalid email or password.</span>
+                </div>
+
+                <button type="submit" class="w-full py-3 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center">
+                    <i data-lucide="shield-check" class="w-4 h-4 mr-2 text-[#C1FF72]"></i>
+                    <span>Sign In to Faculty Console</span>
+                </button>
+
+                <div class="text-center pt-3 border-t border-slate-100">
+                    <span class="text-xs text-slate-400">Student looking for tests?</span>
+                    <a href="index.html" class="text-xs font-bold text-[#291B5F] hover:underline ml-1">Go to Student Portal →</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. MAIN FACULTY CONSOLE WRAPPER (Shown only when authenticated) -->
+    <main id="adminConsoleWrapper" class="hidden flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        <!-- Admin Banner -->
+        <div class="gauss-header-admin rounded-2xl p-6 sm:p-7 text-white shadow-lg flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-14 h-14 rounded-full bg-white border-2 border-[#C1FF72] overflow-hidden flex items-center justify-center shadow-md shrink-0">
+                    <img src="assets/logo.png" alt="Gauss Maths" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black tracking-tight">Faculty Management Portal</h2>
+                    <p class="text-xs text-[#C1FF72] font-semibold mt-0.5">Publish resources, generate student access links, and score test submissions.</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button onclick="window.gaussAdmin.switchTab('students')" class="px-4 py-2 bg-[#C1FF72] hover:bg-[#A9F447] text-[#1E1349] font-bold text-xs rounded-xl transition shadow flex items-center">
+                    <i data-lucide="user-check" class="w-3.5 h-3.5 mr-1.5"></i> Student Approvals
+                </button>
+                <a href="index.html" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl border border-white/20 transition flex items-center">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5 mr-1.5"></i> View Student Site
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI Statistics -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#291B5F] transition" onclick="window.gaussAdmin.switchTab('resources')">
+                <span class="text-xs text-slate-500 font-semibold block uppercase">Total Study Resources</span>
+                <span id="adminStatResources" class="text-2xl font-black text-slate-900 mt-1 block">0</span>
+                <span class="text-[11px] text-emerald-600 font-medium">Important Qs & PYQs</span>
+            </div>
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#291B5F] transition" onclick="window.gaussAdmin.switchTab('tests')">
+                <span class="text-xs text-slate-500 font-semibold block uppercase">Active Test Series</span>
+                <span id="adminStatTests" class="text-2xl font-black text-[#291B5F] mt-1 block">0</span>
+                <span class="text-[11px] text-[#291B5F] font-medium">Assigned Test Series</span>
+            </div>
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#291B5F] transition" onclick="window.gaussAdmin.switchTab('grading')">
+                <span class="text-xs text-slate-500 font-semibold block uppercase">Worksheet Submissions</span>
+                <span id="adminStatSubmissions" class="text-2xl font-black text-blue-600 mt-1 block">0</span>
+                <span class="text-[11px] text-blue-700 font-medium"><span id="adminStatPending">0</span> Pending to Grade</span>
+            </div>
+            <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm cursor-pointer hover:border-[#291B5F] transition" onclick="window.gaussAdmin.switchTab('students')">
+                <span class="text-xs text-slate-500 font-semibold block uppercase">Student Approvals</span>
+                <span id="adminStatPendingStudents" class="text-2xl font-black text-purple-600 mt-1 block">0</span>
+                <span class="text-[11px] text-purple-700 font-medium"><span id="adminStatTotalStudents">0</span> Approved Students</span>
+            </div>
+        </div>
+
+        <!-- Admin Tab Navigation -->
+        <div class="border-b border-slate-200 flex space-x-2 overflow-x-auto">
+            <button id="admin-tab-btn-resources" onclick="window.gaussAdmin.switchTab('resources')" class="px-4 py-2.5 text-sm font-semibold border-b-2 border-[#291B5F] text-[#291B5F] shrink-0">
+                <i data-lucide="file-plus" class="w-4 h-4 inline mr-1"></i> Upload Resources
+            </button>
+            <button id="admin-tab-btn-tests" onclick="window.gaussAdmin.switchTab('tests')" class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent shrink-0">
+                <i data-lucide="file-text" class="w-4 h-4 inline mr-1"></i> Create & Manage Tests
+            </button>
+            <button id="admin-tab-btn-grading" onclick="window.gaussAdmin.switchTab('grading')" class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent shrink-0">
+                <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i> Grade Homework
+            </button>
+            <button id="admin-tab-btn-students" onclick="window.gaussAdmin.switchTab('students')" class="px-4 py-2.5 text-sm font-medium text-slate-500 hover:text-slate-700 border-b-2 border-transparent shrink-0">
+                <i data-lucide="user-check" class="w-4 h-4 inline mr-1"></i> Student Approvals & Links
+                <span id="navPendingBadge" class="hidden ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800">0</span>
+            </button>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PANE 1: UPLOAD STUDY RESOURCES                            -->
+        <!-- ======================================================== -->
+        <div id="admin-pane-resources" class="space-y-6">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 mb-1 flex items-center">
+                    <i data-lucide="upload" class="w-5 h-5 text-[#291B5F] mr-2"></i> Upload New Study Material & Resources
+                </h3>
+                <p class="text-xs text-slate-500 mb-5">Upload Important Questions and Previous Year Questions (PYQs) for students.</p>
+
+                <form id="resourceUploadForm" onsubmit="window.gaussAdmin.handleResourceUpload(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Target Class *</label>
+                            <select id="resUploadClass" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                                <option value="c11">Class 11</option>
+                                <option value="c12">Class 12</option>
+                                <option value="c10">Class 10</option>
+                                <option value="c9">Class 09</option>
+                                <option value="c8">Class 08</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Subject Chapter / Topic *</label>
+                            <input type="text" id="resUploadChapter" placeholder="e.g. Straight Lines or Calculus" required class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Resource Category *</label>
+                            <select id="resUploadCategory" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                                <option value="imp_q">Important Questions</option>
+                                <option value="pyq">Previous Year Questions (PYQ)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Document / Material Title *</label>
+                            <input type="text" id="resUploadTitle" placeholder="e.g. Straight Lines: Normal Form & Angle Bisectors Formulae" required class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Attach PDF Document</label>
+                            <input type="file" id="resUploadFile" accept=".pdf,.doc,.docx" class="w-full text-sm p-1.5 border border-slate-300 rounded-lg text-slate-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Short Description *</label>
+                        <input type="text" id="resUploadDesc" placeholder="Brief summary of topics and concepts covered in this sheet" required class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Formatted Mathematical Content / Notes (Supports LaTeX like $y = mx + c$)</label>
+                        <textarea id="resUploadMathContent" rows="3" placeholder="Key formulae: Distance formula $d = \frac{|Ax+By+C|}{\sqrt{A^2+B^2}}$, etc." class="w-full text-sm p-2.5 border border-slate-300 rounded-lg font-mono"></textarea>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-6 py-2.5 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-sm rounded-xl shadow transition">
+                            Publish Study Material
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Manage Uploaded Resources Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h4 class="font-bold text-sm text-slate-900 mb-3">Published Study Resources</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase font-bold border-b">
+                            <tr>
+                                <th class="py-3 px-4">Title & Description</th>
+                                <th class="py-3 px-4">Chapter</th>
+                                <th class="py-3 px-4">Category</th>
+                                <th class="py-3 px-4">Date / Size</th>
+                                <th class="py-3 px-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminResourcesTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PANE 2: TEST CREATION INTERFACE                           -->
+        <!-- ======================================================== -->
+        <div id="admin-pane-tests" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                
+                <!-- Header with Test Format Switcher -->
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-5 pb-4 border-b border-slate-200">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 flex items-center">
+                            <i data-lucide="layers" class="w-5 h-5 text-[#291B5F] mr-2"></i> Create & Publish Test Series
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Publish custom series with uploadable PDF Question Papers or interactive computer tests.</p>
+                    </div>
+                    
+                    <!-- Test Format Selector Tabs -->
+                    <div class="flex items-center space-x-1 p-1 bg-slate-100 rounded-xl">
+                        <button type="button" id="btnTestFormatPdf" onclick="window.gaussAdmin.setTestCreationType('pdf_series')" class="py-1.5 px-3 rounded-lg text-xs font-bold transition bg-white text-[#291B5F] shadow-sm flex items-center">
+                            <i data-lucide="file-text" class="w-4 h-4 mr-1.5"></i> Custom PDF Series
+                        </button>
+                        <button type="button" id="btnTestFormatMcq" onclick="window.gaussAdmin.setTestCreationType('interactive')" class="py-1.5 px-3 rounded-lg text-xs font-bold transition text-slate-600 hover:text-slate-900 flex items-center">
+                            <i data-lucide="check-square" class="w-4 h-4 mr-1.5"></i> Interactive MCQ Test
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1. CUSTOM PDF TEST SERIES FORM -->
+                <form id="formPdfTestSeries" onsubmit="window.gaussAdmin.handleCreatePdfSeries(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Custom Test Series Title *</label>
+                            <input type="text" id="testPdfTitle" placeholder="e.g. Term 1 Comprehensive Exam — Straight Lines & Conic Sections" required class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Target Class *</label>
+                            <select id="testPdfClass" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                                <option value="c11">Class 11</option>
+                                <option value="c12">Class 12</option>
+                                <option value="c10">Class 10</option>
+                                <option value="c9">Class 09</option>
+                                <option value="c8">Class 08</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Subject Chapter / Topic *</label>
+                            <input type="text" id="testPdfChapter" placeholder="e.g. Straight Lines or Conic Sections" required class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F]">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Total Marks *</label>
+                            <input type="number" id="testPdfMarks" value="50" min="5" max="100" required class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Duration / Time Allowed (Minutes)</label>
+                            <input type="number" id="testPdfDuration" value="90" min="10" max="300" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Submission Deadline</label>
+                            <input type="text" id="testPdfDeadline" placeholder="e.g. Tomorrow 6:00 PM" value="Tomorrow, 6:00 PM" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+
+                    <!-- PDF Question Paper Upload Area -->
+                    <div class="p-4 bg-[#F6FEED] rounded-2xl border-2 border-dashed border-[#EBFDC8]">
+                        <label class="block text-xs font-bold text-slate-800 mb-1 flex items-center">
+                            <i data-lucide="file-up" class="w-4 h-4 mr-1.5 text-[#291B5F]"></i> Upload Question Paper (PDF) *
+                        </label>
+                        <p class="text-xs text-slate-500 mb-3">Upload the official examination question paper PDF for students to solve.</p>
+                        
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                            <input type="file" id="testPdfFileInput" accept=".pdf,application/pdf" class="hidden" onchange="window.gaussAdmin.handleQuestionPaperFileSelected(this)">
+                            <button type="button" onclick="document.getElementById('testPdfFileInput').click()" class="px-4 py-2.5 bg-white border border-slate-300 hover:border-[#291B5F] text-slate-700 font-bold text-xs rounded-xl shadow-sm transition flex items-center">
+                                <i data-lucide="upload-cloud" class="w-4 h-4 mr-2 text-[#291B5F]"></i> Choose PDF Question Paper
+                            </button>
+                            <span id="testPdfFileSelectedInfo" class="text-xs text-slate-600 font-medium truncate max-w-md">
+                                No file chosen (A default sample mathematics paper will be generated if empty)
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Mathematical Instructions & Questions Text -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">
+                            Exam Instructions & Formula Guide (Supports LaTeX Math e.g. $\frac{x}{a} + \frac{y}{b} = 1$)
+                        </label>
+                        <textarea id="testPdfInstructions" rows="3" placeholder="e.g. 1. Solve all proofs on unruled paper with neat diagrams. 2. Section A contains 5 short problems. 3. Scan and upload as a single PDF." class="w-full text-xs p-3 border border-slate-300 rounded-lg"></textarea>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="px-6 py-2.5 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-sm rounded-xl shadow transition flex items-center">
+                            <i data-lucide="send" class="w-4 h-4 mr-2"></i> Publish Custom PDF Series to Students
+                        </button>
+                    </div>
+                </form>
+
+                <!-- 2. INTERACTIVE MCQ TEST FORM -->
+                <form id="createTestForm" onsubmit="window.gaussAdmin.handleCreateTest(event)" class="space-y-4 hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Test Title *</label>
+                            <input type="text" id="testCreateTitle" placeholder="e.g. Straight Lines Test 06 (Advanced)" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Subject Chapter / Topic *</label>
+                            <input type="text" id="testCreateChapter" placeholder="e.g. Straight Lines" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Difficulty</label>
+                            <select id="testCreateDifficulty" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                                <option value="Standard">Standard</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Test Duration (Minutes)</label>
+                            <input type="number" id="testCreateDuration" value="20" min="5" max="180" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Total Marks</label>
+                            <input type="number" id="testCreateMarks" value="20" min="5" max="100" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                        </div>
+                    </div>
+
+                    <!-- Question Builder Section -->
+                    <div class="mt-6 p-4 bg-[#F6FEED] border border-[#EBFDC8] rounded-xl space-y-3">
+                        <h4 class="font-bold text-sm text-[#1E1349] flex items-center justify-between">
+                            <span>Add Question to Test (Questions Drafted: <span id="draftQuestionsCount">0</span>)</span>
+                        </h4>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Question Text (Supports Math LaTeX e.g. $2x - 3y + 5 = 0$)</label>
+                            <textarea id="draftQText" rows="2" placeholder="e.g. Find the distance of point (2, 3) from the line 3x + 4y - 18 = 0." class="w-full text-sm p-2.5 border border-slate-300 rounded-lg"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700">Option A</label>
+                                <input type="text" id="draftOptA" placeholder="e.g. 0 units" class="w-full text-xs p-2 border border-slate-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700">Option B</label>
+                                <input type="text" id="draftOptB" placeholder="e.g. 1 unit" class="w-full text-xs p-2 border border-slate-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700">Option C</label>
+                                <input type="text" id="draftOptC" placeholder="e.g. 2 units" class="w-full text-xs p-2 border border-slate-300 rounded-lg">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-700">Option D</label>
+                                <input type="text" id="draftOptD" placeholder="e.g. 5 units" class="w-full text-xs p-2 border border-slate-300 rounded-lg">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Correct Answer</label>
+                                <select id="draftCorrectOpt" class="w-full text-xs p-2 border border-slate-300 rounded-lg font-bold text-green-700">
+                                    <option value="0">Option A</option>
+                                    <option value="1">Option B</option>
+                                    <option value="2">Option C</option>
+                                    <option value="3">Option D</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Step-by-step Solution Explanation</label>
+                                <input type="text" id="draftExplanation" placeholder="Explain how the answer is derived" class="w-full text-xs p-2 border border-slate-300 rounded-lg">
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="button" onclick="window.gaussAdmin.addQuestionToDraft()" class="px-4 py-2 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-lg shadow-sm">
+                                + Add Question to Test
+                            </button>
+                        </div>
+
+                        <!-- Draft questions preview -->
+                        <div id="draftQuestionsList" class="space-y-2 pt-2">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="px-6 py-2.5 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-sm rounded-xl shadow transition">
+                            Publish Test to Student Portal
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Existing Tests Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h4 class="font-bold text-sm text-slate-900 mb-3">Live Test Series</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase font-bold border-b">
+                            <tr>
+                                <th class="py-3 px-4">Test Title & Chapter</th>
+                                <th class="py-3 px-4 text-center">Format</th>
+                                <th class="py-3 px-4 text-center">Marks & Timing</th>
+                                <th class="py-3 px-4 text-center">Submissions</th>
+                                <th class="py-3 px-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTestsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PANE 3: GRADE STUDENT SUBMISSIONS                         -->
+        <!-- ======================================================== -->
+        <div id="admin-pane-grading" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                <h3 class="text-base font-bold text-slate-900 mb-1 flex items-center">
+                    <i data-lucide="check-square" class="w-5 h-5 text-[#291B5F] mr-2"></i> Review & Grade Student Homework Files
+                </h3>
+                <p class="text-xs text-slate-500 mb-5">Inspect student submitted math answer sheets, assign marks, and write personalized feedback comments.</p>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase font-bold border-b">
+                            <tr>
+                                <th class="py-3 px-4">Student</th>
+                                <th class="py-3 px-4">Assignment / Chapter</th>
+                                <th class="py-3 px-4">File Attachment</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4">Submitted At</th>
+                                <th class="py-3 px-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminSubmissionsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ======================================================== -->
+        <!-- PANE 4: STUDENT APPROVALS & ACCESS LINK GENERATOR        -->
+        <!-- ======================================================== -->
+        <div id="admin-pane-students" class="space-y-6 hidden">
+            
+            <!-- 1. Generate Direct Student Access Link -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900 flex items-center">
+                            <i data-lucide="link-2" class="w-5 h-5 text-[#291B5F] mr-2"></i> Generate Student Direct Access Link
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Generate an approved invite link with token. Students can open this link to log in directly without approval delays.</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#F6FEED] text-[#291B5F] border border-[#EBFDC8] hidden sm:inline-block">
+                        Instant Approval Token
+                    </span>
+                </div>
+
+                <form onsubmit="window.gaussAdmin.handleGenerateStudentLink(event)" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Student Full Name *</label>
+                            <input type="text" id="genStudentName" placeholder="e.g. Aryan Malhotra" required class="w-full text-sm p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#291B5F]/20 focus:border-[#291B5F]">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Assigned Class *</label>
+                            <select id="genStudentClass" class="w-full text-sm p-2.5 border border-slate-300 rounded-xl">
+                                <option value="Class 11">Class 11</option>
+                                <option value="Class 12">Class 12</option>
+                                <option value="Class 10">Class 10</option>
+                                <option value="Class 09">Class 09</option>
+                                <option value="Class 08">Class 08</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Mobile / WhatsApp Number</label>
+                            <input type="tel" id="genStudentPhone" placeholder="e.g. 9876543210" class="w-full text-sm p-2.5 border border-slate-300 rounded-xl">
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-6 py-2.5 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow-md transition flex items-center">
+                            <i data-lucide="plus-circle" class="w-4 h-4 mr-1.5 text-[#C1FF72]"></i>
+                            <span>Generate Approved Access Link</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Generated Link Output Box (Populated on generation) -->
+                <div id="generatedLinkBox" class="hidden p-4 bg-[#F6FEED] rounded-2xl border border-[#EBFDC8] space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-[#1E1349] flex items-center">
+                            <i data-lucide="check-circle" class="w-4 h-4 mr-1.5 text-emerald-600"></i>
+                            Student Link Generated Successfully for <strong id="genLinkStudentName" class="ml-1"></strong>!
+                        </span>
+                        <span id="genLinkTokenBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-white border border-[#EBFDC8] text-[#291B5F]"></span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="genLinkUrl" readonly class="flex-1 text-xs p-2.5 bg-white border border-slate-300 rounded-xl font-mono text-slate-700 select-all">
+                        <button type="button" id="btnCopyGenLink" onclick="window.gaussAdmin.copyGeneratedLink()" class="px-4 py-2.5 bg-[#291B5F] text-[#C1FF72] hover:bg-[#1E1349] font-bold text-xs rounded-xl shadow transition shrink-0 flex items-center">
+                            <i data-lucide="copy" class="w-3.5 h-3.5 mr-1.5"></i>
+                            <span>Copy Link</span>
+                        </button>
+                    </div>
+                    <span class="text-[11px] text-slate-500 block">Share this link directly with the student via WhatsApp, SMS, or Email for 1-click entry.</span>
+                </div>
+            </div>
+
+            <!-- 2. Pending Admission Requests Queue (Requires Teacher Approval) -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-900 flex items-center">
+                            <i data-lucide="user-clock" class="w-4 h-4 text-amber-500 mr-2"></i> Pending Student Admission Requests
+                        </h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Students who requested admission via the student portal. Approve to grant access.</p>
+                    </div>
+                    <span id="pendingBadgeCount" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                        0 Pending
+                    </span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase font-bold border-b">
+                            <tr>
+                                <th class="py-3 px-4">Student</th>
+                                <th class="py-3 px-4">Class</th>
+                                <th class="py-3 px-4">Contact</th>
+                                <th class="py-3 px-4">Requested At</th>
+                                <th class="py-3 px-4 text-right">Approval Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminPendingStudentsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. Approved Students Roster -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-900 flex items-center">
+                            <i data-lucide="users" class="w-4 h-4 text-emerald-600 mr-2"></i> Approved Students Roster
+                        </h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Students currently granted access to Gauss Maths. Copy link or revoke access anytime.</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-600 text-xs uppercase font-bold border-b">
+                            <tr>
+                                <th class="py-3 px-4">Student & ID</th>
+                                <th class="py-3 px-4">Class</th>
+                                <th class="py-3 px-4">Access Token</th>
+                                <th class="py-3 px-4 text-center">Status</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminApprovedStudentsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ======================================================== -->
+    <!-- TEACHER GRADING MODAL                                     -->
+    <!-- ======================================================== -->
+    <div id="gradingModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden">
+            <div class="gauss-header-admin px-6 py-4 text-white flex items-center justify-between">
+                <h3 class="text-base font-bold">Grade Student Submission</h3>
+                <button onclick="document.getElementById('gradingModal').classList.add('hidden')" class="p-1 hover:bg-white/20 rounded-full">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="window.gaussAdmin.saveGrade(event)" class="p-6 space-y-4">
+                <input type="hidden" id="gradeSubId">
+
+                <div class="p-3.5 bg-slate-50 rounded-xl border text-xs space-y-1.5">
+                    <div><span class="text-slate-500">Student:</span> <strong id="gradeStudentName" class="text-slate-900">Student</strong></div>
+                    <div><span class="text-slate-500">Worksheet / Test:</span> <strong id="gradeAssignmentTitle" class="text-slate-900">Straight Lines Proofs</strong></div>
+                    <div class="flex items-center justify-between pt-1">
+                        <div><span class="text-slate-500">Attachment:</span> <span id="gradeFileName" class="text-blue-600 font-mono font-bold">Worksheet.pdf</span></div>
+                        <button type="button" id="btnGradeDownloadPdf" onclick="window.gaussAdmin.downloadCurrentSubmissionFile()" class="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold text-[11px] rounded-lg transition inline-flex items-center">
+                            <i data-lucide="download" class="w-3.5 h-3.5 mr-1"></i> View / Download PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Score Awarded *</label>
+                        <input type="number" id="gradeScoreInput" min="0" max="100" required class="w-full text-sm p-2.5 border border-slate-300 rounded-lg font-bold text-[#291B5F]">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Max Score</label>
+                        <input type="number" id="gradeMaxScoreInput" min="1" max="100" value="20" class="w-full text-sm p-2.5 border border-slate-300 rounded-lg">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Teacher Feedback & Mathematical Guidance *</label>
+                    <textarea id="gradeFeedbackInput" rows="3" required placeholder="Write constructive feedback for student..." class="w-full text-xs p-2.5 border border-slate-300 rounded-lg"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" onclick="document.getElementById('gradingModal').classList.add('hidden')" class="px-4 py-2 border rounded-xl text-xs font-semibold text-slate-600">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-[#291B5F] hover:bg-[#1E1349] text-white font-bold text-xs rounded-xl shadow">
+                        Save & Send to Student
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.gaussAdmin) {
+                window.gaussAdmin.init();
+            }
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        });
+    </script>
+</body>
+</html>
