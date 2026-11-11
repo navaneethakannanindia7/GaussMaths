@@ -1,3 +1,12 @@
+# Next.js / Node
+node_modules/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.env*.local
+.vercel
+user_read_only_context/
+
 # Operating System Files
 .DS_Store
 Thumbs.db
