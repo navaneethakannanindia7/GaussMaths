@@ -4,9 +4,9 @@ export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']
 
 export function privateBlobToken() {
-  const token = process.env.BLOB_PRIVATE_READ_WRITE_TOKEN
+  const token = process.env.BLOB_TESTS_READ_WRITE_TOKEN
   if (!token) {
-    throw new Error('Private file storage is not configured. Add a token from a private Vercel Blob store as BLOB_PRIVATE_READ_WRITE_TOKEN.')
+    throw new Error('Private file storage is not configured. Connect the private Vercel Blob store to provide BLOB_TESTS_READ_WRITE_TOKEN.')
   }
   return token
 }
