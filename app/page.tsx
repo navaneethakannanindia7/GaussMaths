@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpen, ClipboardCheck, FileText, LineChart, ShieldCheck, GraduationCap } from 'lucide-react'
+import { ArrowRight, BookOpen, ClipboardCheck, FileText, LineChart, GraduationCap } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { buttonClass } from '@/components/ui'
 import { getSession } from '@/lib/session'
@@ -27,14 +27,9 @@ export default async function HomePage() {
                 Go to dashboard
               </Link>
             ) : (
-              <>
-                <Link href="/admin/login" className="hidden rounded-lg px-3 py-2 text-sm font-medium text-white/80 hover:text-white sm:inline-flex">
-                  Admin
-                </Link>
-                <Link href="/sign-in" className={buttonClass.lime}>
-                  Student login
-                </Link>
-              </>
+              <Link href="/sign-in" className={buttonClass.lime}>
+                Student login
+              </Link>
             )}
           </nav>
         </div>
@@ -49,8 +44,7 @@ export default async function HomePage() {
                 Learn maths with clarity. Track every step of progress.
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75 text-pretty">
-                The Gauss Maths portal brings tests, homework, study material and report cards together for students — with a separate,
-                secure console for teachers.
+                The Gauss Maths portal brings tests, homework, study material and report cards together for students.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/sign-up" className={`${buttonClass.lime} px-5 py-3 text-base`}>
@@ -82,9 +76,9 @@ export default async function HomePage() {
       </header>
 
       <main className="flex-1">
-        <section aria-labelledby="portals" className="mx-auto -mt-12 grid max-w-6xl gap-5 px-5 md:grid-cols-2">
-          <h2 id="portals" className="sr-only">
-            Choose your portal
+        <section aria-labelledby="student-portal" className="mx-auto -mt-12 grid max-w-6xl gap-5 px-5">
+          <h2 id="student-portal" className="sr-only">
+            Student portal
           </h2>
           <div className="rounded-2xl border border-line bg-card p-6 shadow-lg sm:p-8">
             <span className="grid size-12 place-items-center rounded-xl bg-lime text-brand">
@@ -100,20 +94,6 @@ export default async function HomePage() {
               </Link>
               <Link href="/sign-up" className={buttonClass.outline}>
                 Register
-              </Link>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-brand bg-brand-soft p-6 text-white shadow-lg sm:p-8">
-            <span className="grid size-12 place-items-center rounded-xl bg-white/10 text-lime">
-              <ShieldCheck className="size-6" aria-hidden="true" />
-            </span>
-            <h3 className="mt-4 text-xl font-bold">Admin access</h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/75">
-              For Gauss Maths staff only. Approve students, publish tests, upload resources and grade submissions.
-            </p>
-            <div className="mt-5">
-              <Link href="/admin/login" className={buttonClass.lime}>
-                Admin sign in
               </Link>
             </div>
           </div>

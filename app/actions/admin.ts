@@ -33,7 +33,7 @@ export async function uploadResource(_: FormState, form: FormData): Promise<Form
     const title = text(form, 'title')
     if (!title) return { error: 'Title is required.' }
     const category = text(form, 'category') || 'notes'
-    const file = await uploadFile(form.get('file'), 'resources', true)
+    const file = await uploadFile(form.get('file'), 'resources')
     await db.insert(resources).values({
       title,
       chapter: text(form, 'chapter') || null,

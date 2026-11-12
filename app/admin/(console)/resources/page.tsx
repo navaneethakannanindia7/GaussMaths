@@ -43,9 +43,19 @@ export default async function AdminResourcesPage() {
                 <ClassSelect />
               </Field>
             </div>
-            <Field label="File (PDF, max 4 MB)" htmlFor="file">
-              <input id="file" name="file" type="file" accept="application/pdf" required className={inputClass} />
+            <Field label="Resource file (PDF or image, max 4 MB)" htmlFor="file">
+              <input
+                id="file"
+                name="file"
+                type="file"
+                accept="application/pdf,image/png,image/jpeg,image/webp"
+                required
+                className={inputClass}
+              />
             </Field>
+            <p className="-mt-2 text-sm text-muted">
+              Students in the selected class can view this resource as soon as it&apos;s uploaded. Leave Class set to All classes to share it with everyone.
+            </p>
           </ActionForm>
         </Card>
 

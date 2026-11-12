@@ -5,9 +5,9 @@ import './globals.css'
 const jakarta = Plus_Jakarta_Sans({ subsets: ['latin'], variable: '--font-jakarta' })
 
 export const metadata: Metadata = {
-  title: 'Gauss Maths | Student Portal & Admin',
+  title: 'Gauss Maths | Student Portal',
   description:
-    'Gauss Maths learning portal — tests, study resources, homework submissions and progress reports for students, with a separate admin console for teachers.',
+    'Gauss Maths learning portal — tests, study resources, homework submissions and progress reports for students.',
   icons: {
     icon: '/images/logo.png',
     apple: '/images/logo.png',
