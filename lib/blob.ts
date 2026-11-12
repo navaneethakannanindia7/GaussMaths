@@ -1,9 +1,22 @@
-import { put } from '@vercel/blob'
+import { del, put } from '@vercel/blob'
 
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']
 
-export async function uploadFile(value: FormDataEntryValue | null, prefix: string, pdfOnly = false) {
+export function privateBlobToken() {
+  const token = process.env.BLOB_PRIVATE_READ_WRITE_TOKEN
+  if (!token) {
+    throw new Error('Private file storage is not configured. Add a token from a private Vercel Blob store as BLOB_PRIVATE_READ_WRITE_TOKEN.')
+  }
+  return token
+}
+
+export async function uploadFile(
+  value: FormDataEntryValue | null,
+  prefix: string,
+  pdfOnly = false,
+  access: 'public' | 'private' = 'private',
+) {
   if (!(value instanceof File) || value.size === 0) {
     throw new Error('Please choose a file to upload.')
   }
@@ -16,13 +29,22 @@ export async function uploadFile(value: FormDataEntryValue | null, prefix: strin
   }
   const safeName = value.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80)
   const blob = await put(`${prefix}/${safeName}`, value, {
-    access: 'private',
+    access,
     addRandomSuffix: true,
     contentType: value.type,
+    ...(access === 'private' ? { token: privateBlobToken() } : {}),
   })
-  return { pathname: blob.pathname, fileName: value.name }
+  return { pathname: access === 'public' ? blob.url : blob.pathname, fileName: value.name }
+}
+
+export async function deleteFile(pathname: string) {
+  await del(pathname, pathname.startsWith('https://')
+    ? undefined
+    : { token: privateBlobToken() })
 }
 
 export function fileHref(pathname: string) {
-  return `/api/file?pathname=${encodeURIComponent(pathname)}`
+  return pathname.startsWith('https://')
+    ? pathname
+    : `/api/file?pathname=${encodeURIComponent(pathname)}`
 }

@@ -2,11 +2,10 @@
 
 import { and, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
-import { del } from '@vercel/blob'
 import { db } from '@/lib/db'
 import { resources, submissions, tests, user } from '@/lib/db/schema'
 import { requireAdmin } from '@/lib/session'
-import { uploadFile } from '@/lib/blob'
+import { deleteFile, uploadFile } from '@/lib/blob'
 import type { FormState } from '@/lib/utils'
 
 function text(form: FormData, key: string) {
@@ -33,7 +32,7 @@ export async function uploadResource(_: FormState, form: FormData): Promise<Form
     const title = text(form, 'title')
     if (!title) return { error: 'Title is required.' }
     const category = text(form, 'category') || 'notes'
-    const file = await uploadFile(form.get('file'), 'resources')
+    const file = await uploadFile(form.get('file'), 'resources', false, 'public')
     await db.insert(resources).values({
       title,
       chapter: text(form, 'chapter') || null,
@@ -54,7 +53,7 @@ export async function uploadResource(_: FormState, form: FormData): Promise<Form
 export async function deleteResource(id: number) {
   await requireAdmin()
   const [row] = await db.delete(resources).where(eq(resources.id, id)).returning()
-  if (row) await del(row.pathname).catch(() => {})
+  if (row) await deleteFile(row.pathname).catch(() => {})
   revalidatePath('/admin/resources')
 }
 
@@ -91,7 +90,7 @@ export async function createTest(_: FormState, form: FormData): Promise<FormStat
 export async function deleteTest(id: number) {
   await requireAdmin()
   const [row] = await db.delete(tests).where(eq(tests.id, id)).returning()
-  if (row) await del(row.pathname).catch(() => {})
+  if (row) await deleteFile(row.pathname).catch(() => {})
   revalidatePath('/admin/tests')
 }
 
