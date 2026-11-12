@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { get } from '@vercel/blob'
 import { auth } from '@/lib/auth'
+import { privateBlobToken } from '@/lib/blob'
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers })
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await get(pathname, {
       access: 'private',
+      token: privateBlobToken(),
       ifNoneMatch: request.headers.get('if-none-match') ?? undefined,
     })
     if (!result) return new NextResponse('Not found', { status: 404 })
