@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { get } from '@vercel/blob'
+import { eq } from 'drizzle-orm'
 import { auth } from '@/lib/auth'
-import { privateBlobToken } from '@/lib/blob'
+import { db } from '@/lib/db'
+import { privateFiles } from '@/lib/db/schema'
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: request.headers })
@@ -17,34 +18,22 @@ export async function GET(request: NextRequest) {
   const { role, status, id } = session.user
   const isAdmin = role === 'admin'
   const isApprovedStudent = role === 'student' && status === 'approved'
-  const sharedFile = pathname.startsWith('resources/') || pathname.startsWith('tests/')
-  const ownSubmission = pathname.startsWith(`submissions/${id}/`)
+  const ownSubmission =
+    pathname.startsWith(`submissions/${id}/`) || pathname.startsWith(`test-submissions/${id}/`)
 
-  if (!isAdmin && !(isApprovedStudent && (sharedFile || ownSubmission))) {
+  if (!isAdmin && !(isApprovedStudent && ownSubmission)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
   try {
-    const result = await get(pathname, {
-      access: 'private',
-      token: privateBlobToken(),
-      ifNoneMatch: request.headers.get('if-none-match') ?? undefined,
-    })
-    if (!result) return new NextResponse('Not found', { status: 404 })
+    const [file] = await db.select().from(privateFiles).where(eq(privateFiles.pathname, pathname)).limit(1)
+    if (!file) return new NextResponse('Not found', { status: 404 })
 
-    if (result.statusCode === 304) {
-      return new NextResponse(null, {
-        status: 304,
-        headers: { ETag: result.blob.etag, 'Cache-Control': 'private, no-cache' },
-      })
-    }
-
-    return new NextResponse(result.stream, {
+    return new NextResponse(new Uint8Array(file.data), {
       headers: {
-        'Content-Type': result.blob.contentType,
-        ETag: result.blob.etag,
-        'Cache-Control': 'private, no-cache',
-        'Content-Disposition': 'inline',
+        'Content-Type': file.contentType,
+        'Cache-Control': 'private, no-store',
+        'Content-Disposition': `inline; filename="${encodeURIComponent(file.fileName)}"`,
       },
     })
   } catch (error) {
