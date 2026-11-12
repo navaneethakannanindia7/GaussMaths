@@ -57,10 +57,7 @@ export default async function StudentTestsPage() {
                     <p className="text-muted">
                       {'Submitted '}
                       {formatDate(sub.createdAt)}
-                      {' · '}
-                      <a href={fileHref(sub.pathname)} target="_blank" rel="noreferrer" className="font-semibold text-brand hover:underline">
-                        View my answer
-                      </a>
+                      {' · Your answer sheet is private and visible only in admin grading.'}
                     </p>
                     {sub.feedback ? (
                       <p className="text-ink">

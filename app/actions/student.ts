@@ -29,7 +29,7 @@ export async function submitTestAnswer(_: FormState, form: FormData): Promise<Fo
       .limit(1)
     if (existing) return { error: 'You have already submitted this test.' }
 
-    const file = await uploadFile(form.get('file'), `submissions/${student.id}`)
+    const file = await uploadFile(form.get('file'), `test-submissions/${student.id}`, false, 'private')
     await db.insert(submissions).values({
       userId: student.id,
       kind: 'test',
