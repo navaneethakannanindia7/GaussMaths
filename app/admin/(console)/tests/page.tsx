@@ -54,7 +54,7 @@ export default async function AdminTestsPage() {
             <Field label="Due date (optional)" htmlFor="dueDate">
               <input id="dueDate" name="dueDate" type="date" className={inputClass} />
             </Field>
-            <Field label="Question paper (PDF, max 4 MB)" htmlFor="file">
+            <Field label="Question paper (PDF, max 4 MB)" htmlFor="file" hint="Public file: anyone with the PDF link can view it.">
               <input id="file" name="file" type="file" accept="application/pdf" required className={inputClass} />
             </Field>
           </ActionForm>
