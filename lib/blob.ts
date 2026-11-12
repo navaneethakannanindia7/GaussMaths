@@ -3,12 +3,23 @@ import { del, put } from '@vercel/blob'
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']
 
+const PRIVATE_TOKEN_KEYS = ['BLOB_TESTS_READ_WRITE_TOKEN', 'BLOB_PRIVATE_READ_WRITE_TOKEN']
+
+function isBlobToken(value: string | undefined): value is string {
+  return typeof value === 'string' && value.trim().startsWith('vercel_blob_rw_')
+}
+
 export function privateBlobToken() {
-  const token = process.env.BLOB_TESTS_READ_WRITE_TOKEN
-  if (!token) {
-    throw new Error('Private file storage is not configured. Connect the private Vercel Blob store to provide BLOB_TESTS_READ_WRITE_TOKEN.')
+  const env = process.env
+  for (const key of PRIVATE_TOKEN_KEYS) {
+    const value = env[key]
+    if (isBlobToken(value)) return value.trim()
   }
-  return token
+  console.error(
+    '[blob] Private Blob token missing. Available BLOB_* variables:',
+    Object.keys(env).filter((key) => key.startsWith('BLOB_')),
+  )
+  throw new Error('Private file storage is not configured. Connect the private Vercel Blob store to provide BLOB_TESTS_READ_WRITE_TOKEN.')
 }
 
 export async function uploadFile(
