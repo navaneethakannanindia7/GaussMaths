@@ -1,16 +1,14 @@
+import { randomUUID } from 'node:crypto'
 import { del, put } from '@vercel/blob'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { privateFiles } from '@/lib/db/schema'
 
 export const MAX_UPLOAD_BYTES = 4 * 1024 * 1024
 const ALLOWED_TYPES = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp']
 
-export function privateBlobToken() {
-  const token = process.env.BLOB_TESTS_READ_WRITE_TOKEN
-  if (!token) {
-    throw new Error('Private file storage is not configured. Connect the private Vercel Blob store to provide BLOB_TESTS_READ_WRITE_TOKEN.')
-  }
-  return token
-}
-
+// Public files go to Vercel Blob. Private files (student answer sheets) are
+// stored in the database and only served through the authenticated /api/file route.
 export async function uploadFile(
   value: FormDataEntryValue | null,
   prefix: string,
@@ -28,19 +26,32 @@ export async function uploadFile(
     throw new Error(pdfOnly ? 'Only PDF files are allowed.' : 'Only PDF or image files (PNG, JPG, WEBP) are allowed.')
   }
   const safeName = value.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80)
-  const blob = await put(`${prefix}/${safeName}`, value, {
-    access,
-    addRandomSuffix: true,
+
+  if (access === 'public') {
+    const blob = await put(`${prefix}/${safeName}`, value, {
+      access: 'public',
+      addRandomSuffix: true,
+      contentType: value.type,
+    })
+    return { pathname: blob.url, fileName: value.name }
+  }
+
+  const pathname = `${prefix}/${randomUUID()}-${safeName}`
+  await db.insert(privateFiles).values({
+    pathname,
+    fileName: value.name,
     contentType: value.type,
-    ...(access === 'private' ? { token: privateBlobToken() } : {}),
+    data: Buffer.from(await value.arrayBuffer()),
   })
-  return { pathname: access === 'public' ? blob.url : blob.pathname, fileName: value.name }
+  return { pathname, fileName: value.name }
 }
 
 export async function deleteFile(pathname: string) {
-  await del(pathname, pathname.startsWith('https://')
-    ? undefined
-    : { token: privateBlobToken() })
+  if (pathname.startsWith('https://')) {
+    await del(pathname)
+    return
+  }
+  await db.delete(privateFiles).where(eq(privateFiles.pathname, pathname))
 }
 
 export function fileHref(pathname: string) {

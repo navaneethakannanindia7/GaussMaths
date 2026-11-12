@@ -1,4 +1,18 @@
-import { boolean, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, customType, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() {
+    return 'bytea'
+  },
+})
+
+export const privateFiles = pgTable('private_files', {
+  pathname: text('pathname').primaryKey(),
+  fileName: text('fileName').notNull(),
+  contentType: text('contentType').notNull(),
+  data: bytea('data').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+})
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
