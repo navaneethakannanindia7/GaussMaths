@@ -9,7 +9,12 @@ import { uploadFile } from '@/lib/blob'
 import type { FormState } from '@/lib/utils'
 
 function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : 'Something went wrong.'
+  if (!(error instanceof Error)) return 'Something went wrong.'
+  // Drizzle query errors embed the full SQL and parameters (including file bytes) in the message.
+  const message = error.message.startsWith('Failed query:')
+    ? `Could not save the file${error.cause instanceof Error ? `: ${error.cause.message}` : '.'}`
+    : error.message
+  return message.length > 200 ? `${message.slice(0, 200)}…` : message
 }
 
 export async function submitTestAnswer(_: FormState, form: FormData): Promise<FormState> {

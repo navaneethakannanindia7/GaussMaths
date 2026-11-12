@@ -1,8 +1,17 @@
 import { boolean, customType, integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core'
 
-const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+// Sent as a hex string so the bytes never depend on Buffer identity across runtimes.
+const bytea = customType<{ data: Buffer; driverData: string }>({
   dataType() {
     return 'bytea'
+  },
+  toDriver(value) {
+    return `\\x${Buffer.from(value).toString('hex')}`
+  },
+  fromDriver(value) {
+    const raw: unknown = value
+    if (typeof raw === 'string') return Buffer.from(raw.replace(/^\\x/, ''), 'hex')
+    return Buffer.from(raw as Uint8Array)
   },
 })
 
