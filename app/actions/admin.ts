@@ -13,8 +13,35 @@ function text(form: FormData, key: string) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : 'Something went wrong.'
+function postgresErrorDetails(error: unknown) {
+  const visited = new Set<object>()
+  let current: unknown = error
+
+  while (current !== null && typeof current === 'object' && !visited.has(current)) {
+    visited.add(current)
+    const value = current as Record<string, unknown>
+    if (typeof value.code === 'string' && /^[0-9A-Z]{5}$/.test(value.code)) {
+      return {
+        code: value.code,
+        ...(typeof value.constraint === 'string' ? { constraint: value.constraint } : {}),
+        ...(typeof value.table === 'string' ? { table: value.table } : {}),
+        ...(typeof value.column === 'string' ? { column: value.column } : {}),
+      }
+    }
+    current = value.cause ?? value.originalError
+  }
+
+  return undefined
+}
+
+function errorMessage(error: unknown, action: string, message: string) {
+  const databaseError = postgresErrorDetails(error)
+  console.error('[admin] action failed', {
+    action,
+    errorName: error instanceof Error ? error.name : 'UnknownError',
+    ...(databaseError ? { databaseError } : {}),
+  })
+  return message
 }
 
 export async function setStudentStatus(studentId: string, status: 'approved' | 'rejected' | 'pending') {
@@ -46,7 +73,7 @@ export async function uploadResource(_: FormState, form: FormData): Promise<Form
     revalidatePath('/portal/resources')
     return { success: 'Resource uploaded.' }
   } catch (error) {
-    return { error: errorMessage(error) }
+    return { error: errorMessage(error, 'uploadResource', 'Could not upload this resource. Please try again.') }
   }
 }
 
@@ -87,7 +114,7 @@ export async function createUsefulLink(_: FormState, form: FormData): Promise<Fo
     revalidatePath('/portal/resources')
     return { success: 'Useful link published.' }
   } catch (error) {
-    return { error: errorMessage(error) }
+    return { error: errorMessage(error, 'createUsefulLink', 'Could not publish this link. Please try again.') }
   }
 }
 
@@ -124,7 +151,7 @@ export async function createTest(_: FormState, form: FormData): Promise<FormStat
     revalidatePath('/portal', 'layout')
     return { success: 'Test published to students.' }
   } catch (error) {
-    return { error: errorMessage(error) }
+    return { error: errorMessage(error, 'createTest', 'Could not publish this test. Please try again.') }
   }
 }
 
@@ -162,6 +189,6 @@ export async function gradeSubmission(_: FormState, form: FormData): Promise<For
     revalidatePath('/portal/homework')
     return { success: 'Grade saved.' }
   } catch (error) {
-    return { error: errorMessage(error) }
+    return { error: errorMessage(error, 'gradeSubmission', 'Could not save this grade. Please try again.') }
   }
 }
