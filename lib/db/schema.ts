@@ -84,6 +84,7 @@ export const usefulLinks = pgTable('useful_links', {
   title: text('title').notNull(),
   url: text('url').notNull(),
   description: text('description'),
+  className: text('className'),
   createdBy: text('createdBy').notNull(),
   createdAt: timestamp('createdAt').notNull().defaultNow(),
 })

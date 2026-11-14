@@ -120,6 +120,12 @@ export default async function AdminResourcesPage() {
               <Field label="Description" htmlFor="link-description">
                 <textarea id="link-description" name="description" rows={3} maxLength={600} className={inputClass} placeholder="What students will find at this link" />
               </Field>
+              <Field label="Class" htmlFor="link-className">
+                <ClassSelect id="link-className" />
+              </Field>
+              <p className="-mt-2 text-sm text-muted">
+                Students in the selected class can see this link. Leave Class set to All classes to share it with everyone.
+              </p>
             </ActionForm>
           </Card>
 
@@ -134,6 +140,7 @@ export default async function AdminResourcesPage() {
                   <div className="min-w-0">
                     <h3 className="font-semibold text-ink">{link.title}</h3>
                     <p className="mt-1 break-all text-sm text-brand">{link.url}</p>
+                    <p className="mt-1 text-sm text-muted">{link.className ?? 'All classes'}</p>
                     {link.description ? <p className="mt-1 text-sm text-muted">{link.description}</p> : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
