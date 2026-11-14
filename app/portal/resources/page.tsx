@@ -10,10 +10,14 @@ export const metadata = { title: 'Resources | Gauss Maths Student Portal' }
 
 export default async function StudentResourcesPage() {
   const student = await requireStudent()
-  const [items, links] = await Promise.all([
+  const [resourcesResult, linksResult] = await Promise.allSettled([
     getResourcesForStudent(student.className),
     getUsefulLinks(),
   ])
+  const resourcesUnavailable = resourcesResult.status === 'rejected'
+  const linksUnavailable = linksResult.status === 'rejected'
+  const items = resourcesUnavailable ? [] : resourcesResult.value
+  const links = linksUnavailable ? [] : linksResult.value
   const groups = Object.keys(CATEGORY_LABELS)
     .map((key) => ({ key, label: CATEGORY_LABELS[key], items: items.filter((i) => i.category === key) }))
     .filter((g) => g.items.length > 0)
@@ -22,7 +26,11 @@ export default async function StudentResourcesPage() {
     <>
       <PageHeader title="Resources" description="Notes, important questions and previous year papers shared by your teacher." />
 
-      {groups.length === 0 ? (
+      {resourcesUnavailable ? (
+        <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Study resources could not be loaded. Your useful links may still be available below; reload to retry.
+        </div>
+      ) : groups.length === 0 ? (
         <EmptyState title="No resources yet" description="Study material will appear here once it's uploaded." />
       ) : (
         <div className="flex flex-col gap-8">
@@ -59,7 +67,11 @@ export default async function StudentResourcesPage() {
           <h2 id="useful-links-heading" className="text-xl font-bold tracking-tight text-ink">Useful links</h2>
           <p className="mt-1 text-sm text-muted">Extra learning websites and references selected by your teacher.</p>
         </div>
-        {links.length === 0 ? (
+        {linksUnavailable ? (
+          <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            Useful links could not be loaded. Study resources above remain available; reload to retry.
+          </div>
+        ) : links.length === 0 ? (
           <EmptyState title="No useful links yet" description="Your teacher’s recommended websites will appear here." />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
