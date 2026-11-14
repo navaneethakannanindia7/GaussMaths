@@ -1,6 +1,6 @@
 import { and, desc, eq, isNull, or } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { resources, submissions, tests } from '@/lib/db/schema'
+import { resources, submissions, tests, usefulLinks } from '@/lib/db/schema'
 
 function forClass<T extends { className: typeof tests.className | typeof resources.className }>(table: T, className: string | null | undefined) {
   return className ? or(isNull(table.className), eq(table.className, className)) : isNull(table.className)
@@ -12,6 +12,10 @@ export function getTestsForStudent(className: string | null | undefined) {
 
 export function getResourcesForStudent(className: string | null | undefined) {
   return db.select().from(resources).where(forClass(resources, className)).orderBy(desc(resources.createdAt))
+}
+
+export function getUsefulLinks() {
+  return db.select().from(usefulLinks).orderBy(desc(usefulLinks.createdAt))
 }
 
 export function getSubmissionsForStudent(userId: string, kind?: 'test' | 'homework') {

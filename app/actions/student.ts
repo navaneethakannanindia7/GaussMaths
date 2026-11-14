@@ -58,7 +58,7 @@ export async function submitHomework(_: FormState, form: FormData): Promise<Form
     const title = String(form.get('title') ?? '').trim()
     if (!title) return { error: 'Please give your homework a title.' }
     const chapter = String(form.get('chapter') ?? '').trim() || null
-    const file = await uploadFile(form.get('file'), `submissions/${student.id}`)
+    const file = await uploadFile(form.get('file'), `submissions/${student.id}`, false, 'private')
     await db.insert(submissions).values({
       userId: student.id,
       kind: 'homework',
