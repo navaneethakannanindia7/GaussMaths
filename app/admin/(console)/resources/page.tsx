@@ -1,6 +1,7 @@
 import { desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { resources, usefulLinks } from '@/lib/db/schema'
+import { resources } from '@/lib/db/schema'
+import { getUsefulLinksForAdmin } from '@/lib/student-data'
 import { createUsefulLink, uploadResource } from '@/app/actions/admin'
 import { ActionForm } from '@/components/action-form'
 import { ClassSelect } from '@/components/class-select'
@@ -15,7 +16,7 @@ export const metadata = { title: 'Resource center | Gauss Maths Admin' }
 export default async function AdminResourcesPage() {
   const [resourcesResult, linksResult] = await Promise.allSettled([
     db.select().from(resources).orderBy(desc(resources.createdAt)),
-    db.select().from(usefulLinks).orderBy(desc(usefulLinks.createdAt)),
+    getUsefulLinksForAdmin(),
   ])
   const resourcesUnavailable = resourcesResult.status === 'rejected'
   const linksUnavailable = linksResult.status === 'rejected'
