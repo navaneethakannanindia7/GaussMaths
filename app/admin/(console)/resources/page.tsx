@@ -10,17 +10,27 @@ import { fileHref } from '@/lib/blob'
 import { formatDate } from '@/lib/utils'
 import { CATEGORY_LABELS } from '@/lib/categories'
 
-export const metadata = { title: 'Resources | Gauss Maths Admin' }
+export const metadata = { title: 'Resource center | Gauss Maths Admin' }
 
 export default async function AdminResourcesPage() {
-  const [rows, links] = await Promise.all([
+  const [resourcesResult, linksResult] = await Promise.allSettled([
     db.select().from(resources).orderBy(desc(resources.createdAt)),
     db.select().from(usefulLinks).orderBy(desc(usefulLinks.createdAt)),
   ])
+  const resourcesUnavailable = resourcesResult.status === 'rejected'
+  const linksUnavailable = linksResult.status === 'rejected'
+  const rows = resourcesUnavailable ? [] : resourcesResult.value
+  const links = linksUnavailable ? [] : linksResult.value
 
   return (
     <>
-      <PageHeader title="Resources" description="Share notes, important questions and previous year papers with students." />
+      <PageHeader title="Resource center" description="Upload study material and curate useful links for your students." />
+
+      {resourcesUnavailable || linksUnavailable ? (
+        <div role="alert" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          Some resource lists could not be loaded. The upload forms are still available; reload the page to retry.
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-5">
         <Card className="lg:col-span-2">
@@ -63,7 +73,9 @@ export default async function AdminResourcesPage() {
         </Card>
 
         <div className="flex flex-col gap-3 lg:col-span-3">
-          {rows.length === 0 ? (
+          {resourcesUnavailable ? (
+            <EmptyState title="Resources could not be loaded" description="The upload form is available. Reload the page to try loading the list again." />
+          ) : rows.length === 0 ? (
             <EmptyState title="No resources yet" description="Uploaded study material will appear here." />
           ) : (
             rows.map((r) => (
@@ -112,7 +124,9 @@ export default async function AdminResourcesPage() {
           </Card>
 
           <div className="flex flex-col gap-3 lg:col-span-3">
-            {links.length === 0 ? (
+            {linksUnavailable ? (
+              <EmptyState title="Useful links could not be loaded" description="The publish form is available. Reload the page to try loading the list again." />
+            ) : links.length === 0 ? (
               <EmptyState title="No useful links yet" description="Links you publish will appear in the student Resources section." />
             ) : (
               links.map((link) => (
