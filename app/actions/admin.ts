@@ -3,6 +3,7 @@
 import { and, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
+import { isMissingClassNameColumn, legacyUsefulLinks } from '@/lib/db/compat'
 import { resources, submissions, tests, user, usefulLinks } from '@/lib/db/schema'
 import { requireAdmin } from '@/lib/session'
 import { deleteFile, uploadFile } from '@/lib/blob'
@@ -104,13 +105,27 @@ export async function createUsefulLink(_: FormState, form: FormData): Promise<Fo
       return { error: 'Only web links starting with https:// or http:// are allowed.' }
     }
 
-    await db.insert(usefulLinks).values({
-      title,
-      url: url.toString(),
-      description: description.slice(0, 600),
-      className: text(form, 'className') || null,
-      createdBy: admin.id,
-    })
+    const className = text(form, 'className') || null
+    try {
+      await db.insert(usefulLinks).values({
+        title,
+        url: url.toString(),
+        description: description.slice(0, 600),
+        className,
+        createdBy: admin.id,
+      })
+    } catch (error) {
+      if (!isMissingClassNameColumn(error)) throw error
+      if (className) {
+        return { error: 'This database does not support class-specific links yet. Set Class to All classes to publish this link.' }
+      }
+      await db.insert(legacyUsefulLinks).values({
+        title,
+        url: url.toString(),
+        description: description.slice(0, 600),
+        createdBy: admin.id,
+      })
+    }
     revalidatePath('/admin/resources')
     revalidatePath('/portal/resources')
     return { success: 'Useful link published.' }
