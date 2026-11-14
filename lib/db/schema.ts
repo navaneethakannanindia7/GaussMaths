@@ -78,3 +78,12 @@ export const submissions = pgTable('submissions', {
   createdAt: timestamp('createdAt').notNull().defaultNow(),
   gradedAt: timestamp('gradedAt'),
 })
+
+export const usefulLinks = pgTable('useful_links', {
+  id: serial('id').primaryKey(),
+  title: text('title').notNull(),
+  url: text('url').notNull(),
+  description: text('description'),
+  createdBy: text('createdBy').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+})
