@@ -108,6 +108,7 @@ export async function createUsefulLink(_: FormState, form: FormData): Promise<Fo
       title,
       url: url.toString(),
       description: description.slice(0, 600),
+      className: text(form, 'className') || null,
       createdBy: admin.id,
     })
     revalidatePath('/admin/resources')

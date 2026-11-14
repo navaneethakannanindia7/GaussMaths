@@ -12,7 +12,7 @@ export default async function StudentResourcesPage() {
   const student = await requireStudent()
   const [resourcesResult, linksResult] = await Promise.allSettled([
     getResourcesForStudent(student.className),
-    getUsefulLinks(),
+    getUsefulLinks(student.className),
   ])
   const resourcesUnavailable = resourcesResult.status === 'rejected'
   const linksUnavailable = linksResult.status === 'rejected'
