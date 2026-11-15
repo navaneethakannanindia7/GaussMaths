@@ -2,10 +2,10 @@
 
 import { useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
-import { deleteResource, deleteTest, deleteUsefulLink } from '@/app/actions/admin'
+import { deleteResource, deleteTest, deleteTestSubmission, deleteUsefulLink } from '@/app/actions/admin'
 import { buttonClass } from '@/components/ui'
 
-export function DeleteButton({ id, kind, label }: { id: number; kind: 'resource' | 'test' | 'useful-link'; label: string }) {
+export function DeleteButton({ id, kind, label }: { id: number; kind: 'resource' | 'test' | 'test-submission' | 'useful-link'; label: string }) {
   const [pending, startTransition] = useTransition()
   return (
     <button
@@ -17,6 +17,7 @@ export function DeleteButton({ id, kind, label }: { id: number; kind: 'resource'
         startTransition(() => {
           if (kind === 'resource') return deleteResource(id)
           if (kind === 'useful-link') return deleteUsefulLink(id)
+          if (kind === 'test-submission') return deleteTestSubmission(id)
           return deleteTest(id)
         })
       }}

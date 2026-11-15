@@ -180,6 +180,22 @@ export async function deleteTest(id: number) {
   revalidatePath('/admin/tests')
 }
 
+export async function deleteTestSubmission(id: number) {
+  await requireAdmin()
+  if (!Number.isInteger(id) || id < 1) throw new Error('Invalid submission.')
+
+  const [row] = await db
+    .delete(submissions)
+    .where(and(eq(submissions.id, id), eq(submissions.kind, 'test')))
+    .returning({ pathname: submissions.pathname })
+
+  if (row) await deleteFile(row.pathname).catch(() => {})
+  revalidatePath('/admin', 'layout')
+  revalidatePath('/admin/submissions')
+  revalidatePath('/portal', 'layout')
+  revalidatePath('/portal/tests')
+}
+
 export async function gradeSubmission(_: FormState, form: FormData): Promise<FormState> {
   await requireAdmin()
   try {
