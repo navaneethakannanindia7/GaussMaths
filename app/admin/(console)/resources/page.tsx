@@ -1,8 +1,6 @@
 import { desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { resources } from '@/lib/db/schema'
-import { getUsefulLinksForAdmin } from '@/lib/useful-links'
-import { createUsefulLink } from '@/app/actions/useful-links'
 import { uploadResource } from '@/app/actions/admin'
 import { ActionForm } from '@/components/action-form'
 import { ClassSelect } from '@/components/class-select'
@@ -15,22 +13,19 @@ import { CATEGORY_LABELS } from '@/lib/categories'
 export const metadata = { title: 'Resource center | Gauss Maths Admin' }
 
 export default async function AdminResourcesPage() {
-  const [resourcesResult, linksResult] = await Promise.allSettled([
+  const [resourcesResult] = await Promise.allSettled([
     db.select().from(resources).orderBy(desc(resources.createdAt)),
-    getUsefulLinksForAdmin(),
   ])
   const resourcesUnavailable = resourcesResult.status === 'rejected'
-  const linksUnavailable = linksResult.status === 'rejected'
   const rows = resourcesUnavailable ? [] : resourcesResult.value
-  const links = linksUnavailable ? [] : linksResult.value
 
   return (
     <>
-      <PageHeader title="Resource center" description="Upload study material and curate useful links for your students." />
+      <PageHeader title="Resource center" description="Upload study material for your students." />
 
-      {resourcesUnavailable || linksUnavailable ? (
+      {resourcesUnavailable ? (
         <div role="alert" className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-          Some resource lists could not be loaded. The upload forms are still available; reload the page to retry.
+          Resources could not be loaded. The upload form is still available; reload the page to retry.
         </div>
       ) : null}
 
@@ -103,58 +98,6 @@ export default async function AdminResourcesPage() {
           )}
         </div>
       </div>
-
-      <section className="mt-10 border-t border-line pt-8" aria-labelledby="useful-links-heading">
-        <div className="mb-6">
-          <h2 id="useful-links-heading" className="text-xl font-bold tracking-tight text-ink">Useful links</h2>
-          <p className="mt-1 text-sm text-muted">Publish trusted learning websites and references in the student Resources area.</p>
-        </div>
-        <div className="grid gap-6 lg:grid-cols-5">
-          <Card className="lg:col-span-2">
-            <h3 className="mb-4 font-bold text-ink">Add a useful link</h3>
-            <ActionForm action={createUsefulLink} submitLabel="Publish link">
-              <Field label="Title" htmlFor="link-title">
-                <input id="link-title" name="title" required maxLength={160} className={inputClass} placeholder="Khan Academy — Algebra" />
-              </Field>
-              <Field label="Web address" htmlFor="link-url" hint="Use a secure https:// link when possible.">
-                <input id="link-url" name="url" type="url" required maxLength={2048} className={inputClass} placeholder="https://example.com/learn" />
-              </Field>
-              <Field label="Description" htmlFor="link-description">
-                <textarea id="link-description" name="description" rows={3} maxLength={600} className={inputClass} placeholder="What students will find at this link" />
-              </Field>
-              <Field label="Class" htmlFor="link-className">
-                <ClassSelect id="link-className" />
-              </Field>
-              <p className="-mt-2 text-sm text-muted">
-                Students in the selected class can see this link. Leave Class set to All classes to share it with everyone.
-              </p>
-            </ActionForm>
-          </Card>
-
-          <div className="flex flex-col gap-3 lg:col-span-3">
-            {linksUnavailable ? (
-              <EmptyState title="Useful links could not be loaded" description="Check that this deployment’s DATABASE_URL points to the Gauss Maths Neon database and that its useful_links table exists, then reload." />
-            ) : links.length === 0 ? (
-              <EmptyState title="No useful links yet" description="Links you publish will appear in the student Resources section." />
-            ) : (
-              links.map((link) => (
-                <Card key={link.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <h3 className="font-semibold text-ink">{link.title}</h3>
-                    <p className="mt-1 break-all text-sm text-brand">{link.url}</p>
-                    <p className="mt-1 text-sm text-muted">{link.className ?? 'All classes'}</p>
-                    {link.description ? <p className="mt-1 text-sm text-muted">{link.description}</p> : null}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-brand hover:underline">Preview</a>
-                    <DeleteButton id={link.id} kind="usefulLink" label={link.title} />
-                  </div>
-                </Card>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
     </>
   )
 }
