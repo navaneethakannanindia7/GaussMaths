@@ -112,8 +112,17 @@ export async function createUsefulLink(_: FormState, form: FormData): Promise<Fo
       url: resourceUrl.toString(),
       createdBy: admin.id,
     })
-    revalidatePath('/admin/useful-links')
-    revalidatePath('/portal/useful-links')
+
+    for (const path of ['/admin/useful-links', '/portal/useful-links']) {
+      try {
+        revalidatePath(path)
+      } catch (error) {
+        console.error('[admin] useful link saved but page revalidation failed', {
+          path,
+          errorName: error instanceof Error ? error.name : 'UnknownError',
+        })
+      }
+    }
     return { success: 'Useful link published to students in the selected class.' }
   } catch (error) {
     return { error: errorMessage(error, 'createUsefulLink', 'Could not publish this useful link. Please try again.') }
