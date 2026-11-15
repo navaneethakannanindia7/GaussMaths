@@ -205,7 +205,6 @@ export async function gradeSubmission(_: FormState, form: FormData): Promise<For
     revalidatePath('/admin', 'layout')
     revalidatePath('/admin/homework')
     revalidatePath('/admin/submissions')
-    revalidatePath('/portal/homework')
     revalidatePath('/portal/tests')
     return { success: 'Marks saved. The student can now see the result.' }
   } catch (error) {

@@ -10,24 +10,21 @@ export default async function PortalDashboard() {
   const student = await requireStudent()
   const [allTests, mySubmissions] = await Promise.all([getTestsForStudent(student.className), getSubmissionsForStudent(student.id)])
 
-  const submittedTestIds = new Set(mySubmissions.filter((s) => s.testId != null).map((s) => s.testId))
-  const openTests = allTests.filter((t) => !submittedTestIds.has(t.id))
-  const graded = mySubmissions.filter((s) => s.status === 'graded' && s.score != null && s.maxMarks)
+  const testSubmissions = mySubmissions.filter((submission) => submission.kind === 'test')
+  const submittedTestIds = new Set(testSubmissions.filter((submission) => submission.testId != null).map((submission) => submission.testId))
+  const openTests = allTests.filter((test) => !submittedTestIds.has(test.id))
+  const graded = testSubmissions.filter((submission) => submission.status === 'graded' && submission.score != null && submission.maxMarks)
   const avg = graded.length ? Math.round(graded.reduce((sum, s) => sum + (percent(s.score, s.maxMarks) ?? 0), 0) / graded.length) : null
 
   return (
     <>
-      <PageHeader title={`Welcome, ${student.name.split(' ')[0]}`} description={`${student.className ?? 'Student'} · Your progress at a glance`}>
-        <Link href="/portal/homework" className={buttonClass.lime}>
-          Submit homework
-        </Link>
-      </PageHeader>
+      <PageHeader title={`Welcome, ${student.name.split(' ')[0]}`} description={`${student.className ?? 'Student'} · Your progress at a glance`} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Average score" value={avg == null ? '—' : `${avg}%`} hint={`${graded.length} graded`} />
         <StatCard label="Open tests" value={openTests.length} />
-        <StatCard label="Submissions" value={mySubmissions.length} />
-        <StatCard label="Awaiting grade" value={mySubmissions.filter((s) => s.status === 'submitted').length} />
+        <StatCard label="Test submissions" value={testSubmissions.length} />
+        <StatCard label="Awaiting grade" value={testSubmissions.filter((submission) => submission.status === 'submitted').length} />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
@@ -71,7 +68,7 @@ export default async function PortalDashboard() {
                   <li key={s.id}>
                     <div className="flex items-center justify-between gap-3 text-sm">
                       <span className="flex min-w-0 items-center gap-2">
-                        <Badge tone={s.kind === 'test' ? 'brand' : 'neutral'}>{s.kind === 'test' ? 'Test' : 'HW'}</Badge>
+                        <Badge tone="brand">Test</Badge>
                         <span className="truncate font-medium text-ink">{s.title}</span>
                       </span>
                       <span className="shrink-0 font-semibold text-ink">

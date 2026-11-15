@@ -9,7 +9,6 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
-  NotebookPen,
   Link2,
   Users,
   type LucideIcon,
@@ -32,7 +31,6 @@ const NAV: Record<'admin' | 'student', NavItem[]> = {
   student: [
     { href: '/portal', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/portal/tests', label: 'Tests', icon: FileText },
-    { href: '/portal/homework', label: 'Homework', icon: NotebookPen },
     { href: '/portal/resources', label: 'Resources', icon: BookOpen },
     { href: '/portal/useful-links', label: 'Useful Links', icon: Link2 },
   ],

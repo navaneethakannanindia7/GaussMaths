@@ -51,25 +51,3 @@ export async function submitTestAnswer(_: FormState, form: FormData): Promise<Fo
     return { error: errorMessage(error) }
   }
 }
-
-export async function submitHomework(_: FormState, form: FormData): Promise<FormState> {
-  try {
-    const student = await requireApprovedStudent()
-    const title = String(form.get('title') ?? '').trim()
-    if (!title) return { error: 'Please give your homework a title.' }
-    const chapter = String(form.get('chapter') ?? '').trim() || null
-    const file = await uploadFile(form.get('file'), `submissions/${student.id}`, false, 'private')
-    await db.insert(submissions).values({
-      userId: student.id,
-      kind: 'homework',
-      title: title.slice(0, 200),
-      chapter,
-      pathname: file.pathname,
-      fileName: file.fileName,
-    })
-    revalidatePath('/portal', 'layout')
-    return { success: 'Homework submitted.' }
-  } catch (error) {
-    return { error: errorMessage(error) }
-  }
-}
