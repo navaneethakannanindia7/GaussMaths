@@ -25,7 +25,7 @@ const NAV: Record<'admin' | 'student', NavItem[]> = {
     { href: '/admin', label: 'Overview', icon: LayoutDashboard },
     { href: '/admin/students', label: 'Students', icon: Users },
     { href: '/admin/tests', label: 'Tests', icon: FileText },
-    { href: '/admin/test-submissions', label: 'Test submissions', icon: ClipboardCheck },
+    { href: '/admin/submissions', label: 'Gradings', icon: ClipboardCheck },
     { href: '/admin/resources', label: 'Resources', icon: BookOpen },
     { href: '/admin/useful-links', label: 'Useful Links', icon: Link2 },
   ],

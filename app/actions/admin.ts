@@ -183,13 +183,14 @@ export async function deleteTest(id: number) {
 export async function gradeSubmission(_: FormState, form: FormData): Promise<FormState> {
   await requireAdmin()
   try {
-    const id = Number.parseInt(text(form, 'id'), 10)
-    const score = Number.parseInt(text(form, 'score'), 10)
-    const maxMarks = Number.parseInt(text(form, 'maxMarks'), 10)
-    if (!Number.isInteger(id)) return { error: 'Invalid submission.' }
-    if (!Number.isInteger(maxMarks) || maxMarks <= 0 || maxMarks > 1000) return { error: 'Enter valid maximum marks.' }
+    const id = Number(text(form, 'id'))
+    const rawScore = text(form, 'score')
+    const score = rawScore ? Number(rawScore) : Number.NaN
+    const maxMarks = Number(text(form, 'maxMarks'))
+    if (!Number.isInteger(id) || id < 1) return { error: 'Invalid submission.' }
+    if (!Number.isInteger(maxMarks) || maxMarks <= 0 || maxMarks > 1000) return { error: 'Total marks must be a whole number between 1 and 1000.' }
     if (!Number.isInteger(score) || score < 0 || score > maxMarks) {
-      return { error: `Score must be between 0 and ${maxMarks}.` }
+      return { error: `Marks earned must be a whole number between 0 and ${maxMarks}.` }
     }
     await db
       .update(submissions)
@@ -205,7 +206,8 @@ export async function gradeSubmission(_: FormState, form: FormData): Promise<For
     revalidatePath('/admin/homework')
     revalidatePath('/admin/submissions')
     revalidatePath('/portal/homework')
-    return { success: 'Grade saved.' }
+    revalidatePath('/portal/tests')
+    return { success: 'Marks saved. The student can now see the result.' }
   } catch (error) {
     return { error: errorMessage(error, 'gradeSubmission', 'Could not save this grade. Please try again.') }
   }

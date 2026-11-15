@@ -15,7 +15,7 @@ export default async function StudentTestsPage() {
 
   return (
     <>
-      <PageHeader title="Tests" description="Download the question paper, solve it, then upload a PDF or photo of your answer sheet (max 4 MB)." />
+      <PageHeader title="Tests" description="Download the question paper, solve it, then upload your answer sheet. Your evaluation status and result will appear here." />
 
       {allTests.length === 0 ? (
         <EmptyState title="No tests assigned yet" description="Your teacher hasn't published any tests for your class." />
@@ -24,18 +24,19 @@ export default async function StudentTestsPage() {
           {allTests.map((t) => {
             const sub = byTest.get(t.id)
             const overdue = !sub && t.dueAt && new Date(t.dueAt) < new Date()
+            const totalMarks = sub?.status === 'graded' ? sub.maxMarks ?? t.maxMarks : t.maxMarks
             return (
               <Card key={t.id}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="font-semibold text-ink">{t.title}</h2>
-                      {sub?.status === 'graded' ? (
+                      {sub?.status === 'graded' && sub.score !== null ? (
                         <Badge tone="success">
-                          {sub.score}/{sub.maxMarks}
+                          Result: {sub.score}/{sub.maxMarks ?? t.maxMarks}
                         </Badge>
                       ) : sub ? (
-                        <Badge tone="warning">Submitted</Badge>
+                        <Badge tone="warning">Waiting for evaluation</Badge>
                       ) : overdue ? (
                         <Badge tone="danger">Overdue</Badge>
                       ) : (
@@ -44,7 +45,7 @@ export default async function StudentTestsPage() {
                     </div>
                     <p className="mt-1 text-sm text-muted">
                       {t.chapter ? `${t.chapter} · ` : ''}
-                      {t.maxMarks} marks · Due {formatDate(t.dueAt)}
+                      {totalMarks} total marks · Due {formatDate(t.dueAt)}
                     </p>
                   </div>
                   <a href={fileHref(t.pathname)} target="_blank" rel="noreferrer" className="shrink-0 text-sm font-semibold text-brand hover:underline">
@@ -57,7 +58,7 @@ export default async function StudentTestsPage() {
                     <p className="text-muted">
                       {'Submitted '}
                       {formatDate(sub.createdAt)}
-                      {' · Your answer sheet is private and visible only in admin grading.'}
+                      {sub.status === 'graded' ? ' · Evaluation complete' : ' · Waiting for evaluation'}
                     </p>
                     {sub.feedback ? (
                       <p className="text-ink">

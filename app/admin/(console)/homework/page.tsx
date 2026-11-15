@@ -37,6 +37,7 @@ export default async function AdminHomeworkPage({
         createdAt: submissions.createdAt,
         studentName: user.name,
         studentClass: user.className,
+        studentEmail: user.email,
       })
       .from(submissions)
       .innerJoin(user, eq(user.id, submissions.userId))
