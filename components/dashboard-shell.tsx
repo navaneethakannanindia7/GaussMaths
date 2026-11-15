@@ -11,6 +11,7 @@ import {
   LogOut,
   NotebookPen,
   ClipboardList,
+  Link2,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -27,6 +28,7 @@ const NAV: Record<'admin' | 'student', NavItem[]> = {
     { href: '/admin/tests', label: 'Tests', icon: FileText },
     { href: '/admin/homework', label: 'Homework', icon: ClipboardList },
     { href: '/admin/resources', label: 'Resources', icon: BookOpen },
+    { href: '/admin/useful-links', label: 'Useful Links', icon: Link2 },
     { href: '/admin/submissions', label: 'Grading', icon: ClipboardCheck },
   ],
   student: [
@@ -34,6 +36,7 @@ const NAV: Record<'admin' | 'student', NavItem[]> = {
     { href: '/portal/tests', label: 'Tests', icon: FileText },
     { href: '/portal/homework', label: 'Homework', icon: NotebookPen },
     { href: '/portal/resources', label: 'Resources', icon: BookOpen },
+    { href: '/portal/useful-links', label: 'Useful Links', icon: Link2 },
   ],
 }
 
