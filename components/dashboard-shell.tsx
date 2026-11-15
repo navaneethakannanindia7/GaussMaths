@@ -5,12 +5,10 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useTransition } from 'react'
 import {
   BookOpen,
-  ClipboardCheck,
   FileText,
   LayoutDashboard,
   LogOut,
   NotebookPen,
-  ClipboardList,
   Link2,
   Users,
   type LucideIcon,
@@ -26,10 +24,8 @@ const NAV: Record<'admin' | 'student', NavItem[]> = {
     { href: '/admin', label: 'Overview', icon: LayoutDashboard },
     { href: '/admin/students', label: 'Students', icon: Users },
     { href: '/admin/tests', label: 'Tests', icon: FileText },
-    { href: '/admin/homework', label: 'Homework', icon: ClipboardList },
     { href: '/admin/resources', label: 'Resources', icon: BookOpen },
     { href: '/admin/useful-links', label: 'Useful Links', icon: Link2 },
-    { href: '/admin/submissions', label: 'Grading', icon: ClipboardCheck },
   ],
   student: [
     { href: '/portal', label: 'Dashboard', icon: LayoutDashboard },
