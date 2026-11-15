@@ -6,26 +6,22 @@ import { EmptyState, PageHeader, StatCard } from '@/components/ui'
 import { SubmissionReviewCard } from '@/components/admin/submission-review-card'
 import { cn } from '@/lib/utils'
 
-export const metadata = { title: 'Grading | Gauss Maths Admin' }
+export const metadata = { title: 'Gradings | Gauss Maths Admin' }
 
-const STATUS_FILTERS = { submitted: 'To grade', graded: 'Graded', all: 'All statuses' } as const
-const KIND_FILTERS = { all: 'All work', test: 'Tests', homework: 'Homework' } as const
+const STATUS_FILTERS = { submitted: 'Waiting for evaluation', graded: 'Graded', all: 'All submissions' } as const
 type StatusFilter = keyof typeof STATUS_FILTERS
-type KindFilter = keyof typeof KIND_FILTERS
 
 export default async function SubmissionsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; kind?: string }>
+  searchParams: Promise<{ status?: string }>
 }) {
   const params = await searchParams
   const status: StatusFilter = params.status && params.status in STATUS_FILTERS ? (params.status as StatusFilter) : 'submitted'
-  const kind: KindFilter = params.kind && params.kind in KIND_FILTERS ? (params.kind as KindFilter) : 'all'
-  const conditions = []
+  const conditions = [eq(submissions.kind, 'test')]
   if (status !== 'all') conditions.push(eq(submissions.status, status))
-  if (kind !== 'all') conditions.push(eq(submissions.kind, kind))
 
-  const [rows, [pendingCount], [gradedCount], [homeworkCount]] = await Promise.all([
+  const [rows, [pendingCount], [gradedCount]] = await Promise.all([
     db
       .select({
         id: submissions.id,
@@ -41,69 +37,59 @@ export default async function SubmissionsPage({
         createdAt: submissions.createdAt,
         studentName: user.name,
         studentClass: user.className,
+        studentEmail: user.email,
       })
       .from(submissions)
       .innerJoin(user, eq(user.id, submissions.userId))
-      .where(conditions.length ? and(...conditions) : undefined)
-      .orderBy(desc(submissions.createdAt)),
-    db.select({ value: count() }).from(submissions).where(eq(submissions.status, 'submitted')),
-    db.select({ value: count() }).from(submissions).where(eq(submissions.status, 'graded')),
-    db.select({ value: count() }).from(submissions).where(eq(submissions.kind, 'homework')),
+      .where(and(...conditions))
+      .orderBy(desc(submissions.status), desc(submissions.createdAt)),
+    db
+      .select({ value: count() })
+      .from(submissions)
+      .where(and(eq(submissions.kind, 'test'), eq(submissions.status, 'submitted'))),
+    db
+      .select({ value: count() })
+      .from(submissions)
+      .where(and(eq(submissions.kind, 'test'), eq(submissions.status, 'graded'))),
   ])
 
-  const filterHref = (nextStatus: StatusFilter, nextKind: KindFilter) =>
-    `/admin/submissions?status=${nextStatus}&kind=${nextKind}`
+  const filterHref = (nextStatus: StatusFilter) => `/admin/submissions?status=${nextStatus}`
 
   return (
     <>
       <PageHeader
-        title="Grading"
-        description="Review student answer sheets, track pending work, and send marks with useful feedback. Homework also has its own dedicated queue."
+        title="Gradings"
+        description="Review test answer sheets and enter marks earned out of the total. Students can see their result in Tests after you save it."
       />
 
-      <div className="mb-6 grid gap-3 sm:grid-cols-3">
-        <StatCard label="Waiting to grade" value={pendingCount.value} hint="Tests and homework" />
-        <StatCard label="Graded submissions" value={gradedCount.value} hint="Results already shared" />
-        <StatCard label="Homework submissions" value={homeworkCount.value} hint="Open the dedicated homework queue" />
+      <div className="mb-6 grid gap-3 sm:grid-cols-2">
+        <StatCard label="Waiting for evaluation" value={pendingCount.value} hint="Test submissions not yet graded" />
+        <StatCard label="Graded tests" value={gradedCount.value} hint="Results are visible to students" />
       </div>
 
-      <div className="mb-5 flex flex-col gap-3">
-        <nav aria-label="Filter by work type" className="flex flex-wrap gap-2">
-          {(Object.keys(KIND_FILTERS) as KindFilter[]).map((key) => (
-            <Link
-              key={key}
-              href={filterHref(status, key)}
-              aria-current={kind === key ? 'page' : undefined}
-              className={cn(
-                'rounded-full border px-3.5 py-1.5 text-sm font-medium transition',
-                kind === key ? 'border-brand bg-brand text-white' : 'border-line bg-card text-muted hover:text-ink',
-              )}
-            >
-              {KIND_FILTERS[key]}
-            </Link>
-          ))}
-        </nav>
-        <nav aria-label="Filter by grading status" className="flex flex-wrap gap-2">
-          {(Object.keys(STATUS_FILTERS) as StatusFilter[]).map((key) => (
-            <Link
-              key={key}
-              href={filterHref(key, kind)}
-              aria-current={status === key ? 'page' : undefined}
-              className={cn(
-                'rounded-full border px-3.5 py-1.5 text-sm font-medium transition',
-                status === key ? 'border-brand bg-brand text-white' : 'border-line bg-card text-muted hover:text-ink',
-              )}
-            >
-              {STATUS_FILTERS[key]}
-            </Link>
-          ))}
-        </nav>
-      </div>
+      <nav aria-label="Filter by grading status" className="mb-5 flex flex-wrap gap-2">
+        {(Object.keys(STATUS_FILTERS) as StatusFilter[]).map((key) => (
+          <Link
+            key={key}
+            href={filterHref(key)}
+            aria-current={status === key ? 'page' : undefined}
+            className={cn(
+              'rounded-full border px-3.5 py-1.5 text-sm font-medium transition',
+              status === key ? 'border-brand bg-brand text-white' : 'border-line bg-card text-muted hover:text-ink',
+            )}
+          >
+            {STATUS_FILTERS[key]}
+            {key === 'submitted' && pendingCount.value > 0 ? (
+              <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{pendingCount.value}</span>
+            ) : null}
+          </Link>
+        ))}
+      </nav>
 
       {rows.length === 0 ? (
         <EmptyState
-          title="No matching submissions"
-          description="Try another work type or grading status, or check the homework queue for student uploads."
+          title={status === 'submitted' ? 'No tests waiting for evaluation' : 'No test submissions yet'}
+          description={status === 'submitted' ? 'New student answer sheets will appear here after submission.' : undefined}
         />
       ) : (
         <div className="flex flex-col gap-4">
