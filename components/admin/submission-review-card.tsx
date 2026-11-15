@@ -1,5 +1,6 @@
 import { gradeSubmission } from '@/app/actions/admin'
 import { ActionForm } from '@/components/action-form'
+import { DeleteButton } from '@/components/admin/delete-button'
 import { Badge, Card, inputClass } from '@/components/ui'
 import { fileHref } from '@/lib/blob'
 import { formatDate } from '@/lib/utils'
@@ -55,14 +56,23 @@ export function SubmissionReviewCard({ submission }: { submission: SubmissionRev
             </p>
           ) : null}
         </div>
-        <a
-          href={fileHref(submission.pathname)}
-          target="_blank"
-          rel="noreferrer"
-          className="shrink-0 text-sm font-semibold text-brand hover:underline"
-        >
-          Open {submission.fileName}
-        </a>
+        <div className="flex shrink-0 items-center gap-3">
+          <a
+            href={fileHref(submission.pathname)}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-semibold text-brand hover:underline"
+          >
+            Open {submission.fileName}
+          </a>
+          {!isHomework ? (
+            <DeleteButton
+              id={submission.id}
+              kind="test-submission"
+              label={`${submission.studentName}'s ${submission.title} test submission`}
+            />
+          ) : null}
+        </div>
       </div>
 
       <ActionForm
