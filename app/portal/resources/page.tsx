@@ -1,7 +1,8 @@
 import { ExternalLink, FileText } from 'lucide-react'
 import { Card, EmptyState, PageHeader } from '@/components/ui'
 import { requireStudent } from '@/lib/session'
-import { getResourcesForStudent, getUsefulLinks } from '@/lib/student-data'
+import { getResourcesForStudent } from '@/lib/student-data'
+import { getUsefulLinksForStudent } from '@/lib/useful-links'
 import { CATEGORY_LABELS } from '@/lib/categories'
 import { fileHref } from '@/lib/blob'
 import { formatDate } from '@/lib/utils'
@@ -12,7 +13,7 @@ export default async function StudentResourcesPage() {
   const student = await requireStudent()
   const [resourcesResult, linksResult] = await Promise.allSettled([
     getResourcesForStudent(student.className),
-    getUsefulLinks(student.className),
+    getUsefulLinksForStudent(student.className),
   ])
   const resourcesUnavailable = resourcesResult.status === 'rejected'
   const linksUnavailable = linksResult.status === 'rejected'
@@ -69,7 +70,7 @@ export default async function StudentResourcesPage() {
         </div>
         {linksUnavailable ? (
           <div role="alert" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
-            Useful links could not be loaded. Study resources above remain available; reload to retry.
+            Useful links could not be loaded. The database connection or useful_links table is unavailable; reload to retry.
           </div>
         ) : links.length === 0 ? (
           <EmptyState title="No useful links yet" description="Your teacher’s recommended websites will appear here." />

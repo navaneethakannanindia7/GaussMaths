@@ -3,8 +3,7 @@
 import { and, eq } from 'drizzle-orm'
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
-import { isMissingClassNameColumn, legacyUsefulLinks } from '@/lib/db/compat'
-import { resources, submissions, tests, user, usefulLinks } from '@/lib/db/schema'
+import { resources, submissions, tests, user } from '@/lib/db/schema'
 import { requireAdmin } from '@/lib/session'
 import { deleteFile, uploadFile } from '@/lib/blob'
 import type { FormState } from '@/lib/utils'
@@ -83,62 +82,6 @@ export async function deleteResource(id: number) {
   const [row] = await db.delete(resources).where(eq(resources.id, id)).returning()
   if (row) await deleteFile(row.pathname).catch(() => {})
   revalidatePath('/admin/resources')
-}
-
-export async function createUsefulLink(_: FormState, form: FormData): Promise<FormState> {
-  const admin = await requireAdmin()
-  try {
-    const title = text(form, 'title')
-    const rawUrl = text(form, 'url')
-    const description = text(form, 'description')
-    if (!title) return { error: 'Title is required.' }
-    if (title.length > 160) return { error: 'Title must be 160 characters or fewer.' }
-    if (!rawUrl || rawUrl.length > 2048) return { error: 'Enter a valid link.' }
-
-    let url: URL
-    try {
-      url = new URL(rawUrl)
-    } catch {
-      return { error: 'Enter a valid link starting with https:// or http://.' }
-    }
-    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
-      return { error: 'Only web links starting with https:// or http:// are allowed.' }
-    }
-
-    const className = text(form, 'className') || null
-    try {
-      await db.insert(usefulLinks).values({
-        title,
-        url: url.toString(),
-        description: description.slice(0, 600),
-        className,
-        createdBy: admin.id,
-      })
-    } catch (error) {
-      if (!isMissingClassNameColumn(error)) throw error
-      if (className) {
-        return { error: 'This database does not support class-specific links yet. Set Class to All classes to publish this link.' }
-      }
-      await db.insert(legacyUsefulLinks).values({
-        title,
-        url: url.toString(),
-        description: description.slice(0, 600),
-        createdBy: admin.id,
-      })
-    }
-    revalidatePath('/admin/resources')
-    revalidatePath('/portal/resources')
-    return { success: 'Useful link published.' }
-  } catch (error) {
-    return { error: errorMessage(error, 'createUsefulLink', 'Could not publish this link. Please try again.') }
-  }
-}
-
-export async function deleteUsefulLink(id: number) {
-  await requireAdmin()
-  await db.delete(usefulLinks).where(eq(usefulLinks.id, id))
-  revalidatePath('/admin/resources')
-  revalidatePath('/portal/resources')
 }
 
 export async function createTest(_: FormState, form: FormData): Promise<FormState> {

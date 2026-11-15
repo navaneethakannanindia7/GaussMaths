@@ -1,8 +1,9 @@
 import { desc } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { resources } from '@/lib/db/schema'
-import { getUsefulLinksForAdmin } from '@/lib/student-data'
-import { createUsefulLink, uploadResource } from '@/app/actions/admin'
+import { getUsefulLinksForAdmin } from '@/lib/useful-links'
+import { createUsefulLink } from '@/app/actions/useful-links'
+import { uploadResource } from '@/app/actions/admin'
 import { ActionForm } from '@/components/action-form'
 import { ClassSelect } from '@/components/class-select'
 import { DeleteButton } from '@/components/admin/delete-button'
@@ -132,7 +133,7 @@ export default async function AdminResourcesPage() {
 
           <div className="flex flex-col gap-3 lg:col-span-3">
             {linksUnavailable ? (
-              <EmptyState title="Useful links could not be loaded" description="The publish form is available. Reload the page to try loading the list again." />
+              <EmptyState title="Useful links could not be loaded" description="Check that this deployment’s DATABASE_URL points to the Gauss Maths Neon database and that its useful_links table exists, then reload." />
             ) : links.length === 0 ? (
               <EmptyState title="No useful links yet" description="Links you publish will appear in the student Resources section." />
             ) : (

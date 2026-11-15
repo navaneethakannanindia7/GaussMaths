@@ -2,7 +2,8 @@
 
 import { useTransition } from 'react'
 import { Trash2 } from 'lucide-react'
-import { deleteResource, deleteTest, deleteUsefulLink } from '@/app/actions/admin'
+import { deleteResource, deleteTest } from '@/app/actions/admin'
+import { deleteUsefulLink } from '@/app/actions/useful-links'
 import { buttonClass } from '@/components/ui'
 
 export function DeleteButton({ id, kind, label }: { id: number; kind: 'resource' | 'test' | 'usefulLink'; label: string }) {
