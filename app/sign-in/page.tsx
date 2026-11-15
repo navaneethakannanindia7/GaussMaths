@@ -9,7 +9,7 @@ export default async function SignInPage() {
   const session = await getSession()
   if (session?.user) redirect(session.user.role === 'admin' ? '/admin' : '/portal')
   return (
-    <AuthCard variant="student" title="Student portal" description="Sign in to view tests, submit homework and track your progress.">
+    <AuthCard variant="student" title="Student portal" description="Sign in to view tests, study resources and track your progress.">
       <AuthForm mode="student-sign-in" />
     </AuthCard>
   )

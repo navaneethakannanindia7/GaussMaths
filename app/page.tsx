@@ -1,13 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, BookOpen, ClipboardCheck, FileText, LineChart, GraduationCap } from 'lucide-react'
+import { ArrowRight, BookOpen, FileText, LineChart, GraduationCap } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { buttonClass } from '@/components/ui'
 import { getSession } from '@/lib/session'
 
 const FEATURES = [
   { icon: FileText, title: 'Online tests', text: 'Download question papers and upload your answer sheet from any device.' },
-  { icon: ClipboardCheck, title: 'Homework review', text: 'Submit homework as a PDF or photo and get marks with feedback.' },
   { icon: BookOpen, title: 'Study resources', text: 'Notes, important questions and previous year papers in one place.' },
   { icon: LineChart, title: 'Progress reports', text: 'See every score and your average improve over time.' },
 ]
@@ -44,7 +43,7 @@ export default async function HomePage() {
                 Learn maths with clarity. Track every step of progress.
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/75 text-pretty">
-                The Gauss Maths portal brings tests, homework, study material and report cards together for students.
+                The Gauss Maths portal brings tests, study material and report cards together for students.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/sign-up" className={`${buttonClass.lime} px-5 py-3 text-base`}>
@@ -103,7 +102,7 @@ export default async function HomePage() {
           <h2 id="features" className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">
             Everything a student needs
           </h2>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
               <div key={f.title} className="rounded-2xl border border-line bg-card p-5">
                 <f.icon className="size-6 text-brand" aria-hidden="true" />
